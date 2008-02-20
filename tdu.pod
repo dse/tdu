@@ -1,0 +1,148 @@
+=head1 NAME
+
+tdu - display disk space utilization in a folding outline
+
+=head1 SYNOPSIS
+
+    du | tdu [options ...]
+
+=head1 DESCRIPTION
+
+tdu(1) is a program that displays disk space utilization as reported by du(1)
+in an interactive full-screen folding outline.  tdu(1) displays the space
+taken by each directory, including all its descendents.  The user can navigate
+the tree structure and open (or close) directories in order to display (or
+hide) the utilization of subdirectories (and files, if du -a is used) within
+each directory.  The entries can be sorted by filename or space utilizied, or
+reverted back to their original sorting order.
+
+=head1 KEYS
+
+=head2 Navigation
+
+=over 4
+
+=item UP, DOWN, PAGEUP, PAGEDOWN
+
+Move the cursor up or down by one line or page.
+
+=item HOME or <, END or >
+
+Move the cursor to the first or last item.
+
+=item p
+
+Move the cursor to the current item's parent directory.
+
+=back
+
+=head2 Expanding and Collapsing
+
+=over 4
+
+=item LEFT or 0, RIGHT
+
+Collapse, expand this node's children.
+
+=item 1 to 9
+
+Expand 1 to 9 levels deep.
+
+=item *
+
+Expand all levels deep.
+
+=back
+
+=head2 Sorting
+
+=over 4
+
+=item s, S
+
+Sort current item's children in ascending, descending order by size.
+
+=item n, N
+
+Sort current item's children in ascending, descending order by name.
+
+=item d, D
+
+Sort current item's children in ascending, descending order by number of
+descendent nodes (excluding itself).
+
+=item u, U
+
+Revert current item's children to original order (or its reverse).
+
+=item =
+
+Press before one of the sorting keys to apply the sort recursively.
+
+=back
+
+=head2 Miscellaneous
+
+=over 4
+
+=item #
+
+Hide/show the number of descendents of each node.
+
+=item a, A
+
+Toggle the use of ASCII line-drawing characters.
+
+=item q, x, ESC
+
+Quit the program.
+
+=item ?
+
+Display online help.
+
+=item c or C
+
+Display copyright and licensing information.
+
+=back
+
+=head1 OPTIONS
+
+=over 4
+
+=item -h, --help
+
+Display a brief help message.
+
+=item -A, --ascii-tree
+
+Display tree branches using ASCII characters instead of actual line-drawing
+characters.
+
+=item -V, --show-version
+
+Display a message listing the program's version and license terms.
+
+=back
+
+=head1 BUGS AND LIMITATIONS
+
+The functionality from previous versions of tdu that classifies filenames into
+groups (the -G and -I options) has been moved into a separate program,
+dugroup(1).
+
+=head1 SEE ALSO
+
+du(1), xdu(1), dugroup(1).
+
+=head1 AUTHOR
+
+Darren Stuart Embry <dse@webonastick.com>.
+
+=cut
+
+#Local Variables:
+#indent-tabs-mode: nil
+#End:
+

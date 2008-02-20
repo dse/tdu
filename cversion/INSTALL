@@ -1,0 +1,13 @@
+make
+	Compiles the tdu executable.
+
+make install
+	Compiles the tdu executable, installs it in /usr/local/bin,
+	and installs the manpage in /usr/local/man/man1.
+
+make install prefix=/usr
+	Use /usr instead of /usr/local.
+
+make install prefix=/usr/local/stow/tdu
+	You can install this page with GNU Stow if you desire.
+

@@ -1,0 +1,51 @@
+TODO
+
+- implement horizontal scrolling
+
+- support the -0/--null option. [for GNU du's -0 option]
+  [NOTE: this would also require a -0 option in dugroup(1).]
+
+- sort by placing directories first but otherwise maintaining existing order
+
+  NOTE: would assume user is running "du -a" and that a node with no children
+  is not a directory (which is not always the case).
+
+- keybinding to show current node at *top* of screen
+
+MAYBE
+
+- $HOME/.tdurc config file to control keybindings and other interface aspects
+
+TODO for C version
+
+- use the terminal cursor instead of your own custom one.
+  [implemented in Perl version]
+
+- use long long instead of long for specifying sizes where possible.
+  [not needed for Perl version]
+
+- use unsigned types to specify the sizes.  use a flag where you would
+  specify -1 for the size.
+  [not needed for Perl version]
+
+- different levels of verbosity, specified by -v with optional numeric
+  arg, -q is equiv. to -v0
+  [not applicable to Perl version]
+
+- FIX: resize handling
+  [implemented in Perl version]
+
+- some semblance of online "help"
+  [implemented in Perl version]
+
+- status line
+  [implemented in Perl version]
+
+- total redraw (C-r)
+  [implemented in Perl version]
+
+- someday use isdupath to collapse unnecessary levels
+  [eh?  I don't remember what I mean by this.]
+
+- turn off smooth scroll if scrolling more than 1-2 lines??
+

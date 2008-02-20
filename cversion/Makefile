@@ -1,0 +1,70 @@
+# tdu - a text-mode disk usage visualization utility
+# Copyright (C) 2004 Darren Stuart Embry.  
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307$
+
+all: tdu
+
+SRCS = tdu.c group.c node.c tduint.c nowrap.c
+HDRS = tduproto.h
+PROG = tdu
+OBJS = $(SRCS:.c=.o)
+LIBS = -lncurses
+
+$(PROG): $(OBJS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+.c.o:
+	$(CC) -Wall $(CFLAGS) -c $< -o $@
+
+install = /usr/bin/install
+prefix = /usr/local
+install: $(PROG)
+	$(install) -d -m 0755 $(prefix)/bin
+	$(install) -d -m 0755 $(prefix)/share/man/man1
+	$(install) -m 0755 $(PROG) $(prefix)/bin
+	$(install) -m 0644 tdu.1   $(prefix)/share/man/man1
+
+tar:
+	( umask 022 ; cd .. ; tar cvvzf tdu-`date +%Y-%m-%d`.tar.gz tdu \
+		--exclude=CVS \
+                --exclude='#*#' \
+                --exclude='.#*' \
+                --exclude='.cvsignore' \
+                --exclude='*~' \
+                --exclude='.*~' \
+		--exclude='tdu/tdu' \
+		--exclude='*.o' \
+		--exclude='*.d' \
+		--exclude='.deps' \
+	)
+tdu.1.txt: tdu.1
+	nroff -man tdu.1 > tdu.1.txt
+tdu.1.ps: tdu.1
+	groff -Tps -man tdu.1 > tdu.1.ps
+tdu.1.html: tdu.1
+	groff -Thtml -man tdu.1 > tdu.1.html
+###############################################################################
+.PHONY: all install clean
+.SUFFIXES: .d
+###############################################################################
+clean:
+	/bin/rm -fr tdu.1.html tdu.1.ps *.o *.d *~ core $(PROG)
+###############################################################################
+%.d: %.c
+	@ >&2 echo Fixing dependencies for $< . . .
+	@ $(CC) -MM $(CPPFLAGS) $< | sed 's/^$*\.o/& $@/g' > $@ || true
+-include $(SRCS:.c=.d)
+###############################################################################
+

@@ -1,0 +1,117 @@
+TDU(1)                             Utilities                            TDU(1)
+
+
+
+NNAAMMEE
+       tdu - folding-outline disk usage display
+
+SSYYNNOOPPSSIISS
+       dduu _a_r_g_s || ttdduu [[--hh]] [[--AA]] [[--GG _g_r_o_u_p_-_n_a_m_e --II _p_a_t_t_e_r_n --II _p_a_t_t_e_r_n ......]]
+
+DDEESSCCRRIIPPTTIIOONN
+       tdu  is  a  program that displays disk space utilization as reported by
+       du(1) in an interactive full-screen folding outline.  tdu displays  the
+       space taken by each directory, including all its descendents.  The user
+       can navigate the tree structure and  open  (or  close)  directories  in
+       order  to  display  (or  hide)  the  utilization of subdirectories (and
+       files, if du -x is used) within each directory.   The  entries  can  be
+       sorted by filename or space utilizied, or reverted back to their origi-
+       nal sorting order.
+
+KKEEYYSS
+       q, x, Control-C, Escape
+              Exit the tdu program.
+
+       Up, Down, Home, End, PgUp, PgDn
+              Navigate through the directories and filenames being  displayed.
+
+       <, >   Keys that perform the same functions as Home and End.
+
+       Control-N, Control-P, Control-B, Control-F
+              Emacs bindings that perform the same functions as the arrows.
+
+       h, j, k, l
+              vi bindings that perform the same functions as the arrows.
+
+       Right  If the cursor is located at a directory, shows immediate descen-
+              dents of that directory.  If Right is pressed many times in suc-
+              cession,  opens the tree to display as many levels of descending
+              directories and filenames.
+
+       1, 2, 3, 4, 5, 6, 7, 8, 9
+              Open the current node to display 1 to  9  levels  of  descending
+              directories ans filenames.
+
+       *      Display all levels of descendents of the current node.
+
+       Left, 0
+              If  the  cursor  is  located  at  a  directory, hides all of its
+              descendents from the display.
+
+       p      Move the cursor to the current node's parent.
+
+       s, S   Sort the direct descendents of the current node in ascending (or
+              descending) order of size.
+
+       n, N   Sort the direct descendents of the current node in ascending (or
+              descending) order of filename.
+
+       u, U   Re-sort the direct descendents of the current node in the origi-
+              nal order (or its reverse).
+
+       = then s, S, n, N, u, or U
+              Perform one of the above sorting operations recursively.
+
+       Control-L
+              Move  the current node to the center of the screen as closely as
+              possible.
+
+       Control-R
+              Refresh the entire display, incase it has been clobbered.
+
+OOPPTTIIOONNSS
+       -h     Display a summary of command-line options.
+
+       -A     Use ASCII characters instead of line-drawing characters.
+
+       -G group-name and -I pattern
+              The "-a" option of du(1) is used to obtain usage information  on
+              all  files,  not just directories.  These options lump filenames
+              within a directory into groups in order to display their collec-
+              tive disk utilizaion.  Groups are displayed as fake directories,
+              and individual filenames within those groups can still  be  dis-
+              played.
+
+              "-G  group-name"  is specified first, then multiple "-I pattern"
+              options can be specified to group files matched  by  those  pat-
+              terns into the group-name.  Patterns can contain the "?" and "*"
+              wildcard characters, which respectively match exactly one or any
+              number of characters in a filename.
+
+              Additional groups of -G and -I options can be specified.
+
+              The  first  pattern  that each filename matches determines which
+              group into which the filename is classified.
+
+EEXXAAMMPPLLEESS
+       du -ax | tdu -G 'BACKUP FILES' -I '*~'  -I  '#*#'  -G  'POSTSCRIPT'  -I
+       '*.ps'
+              Collectively displays usage for all backup files in a particular
+              directory  under  the  name  "BACKUP  FILES", and all PostScript
+              files under the name "POSTSCRIPT".
+
+BBUUGGSS
+       This program does not handle terminal resizing right now.
+
+CCAAVVEEAATTSS
+       This program does not provide online help.
+
+AAUUTTHHOORR
+       Darren Stuart Embry (dse@webonastick.com).
+
+SSEEEE AALLSSOO
+       dduu(1), xxdduu(1)
+
+
+
+misc                              2002-09-08                            TDU(1)

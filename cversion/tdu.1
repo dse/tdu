@@ -1,0 +1,139 @@
+.\" Process this file with
+.\" groff -man -Tascii tdu.1
+.\"
+.\" tdu - a text-mode disk usage visualization utility
+.\" Copyright (C) 2004 Darren Stuart Embry.  
+.\" 
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307$
+.\"
+.TH TDU 1 "2002-09-08" misc "Utilities"
+.SH NAME
+tdu \- folding-outline disk usage display
+.SH SYNOPSIS
+.BI "du " args
+.B "| tdu [-h] [-A] [-V]"
+.BI "[-G " group-name
+.BI "-I " pattern
+.BI "-I " pattern " ...]"
+.SH DESCRIPTION
+tdu is a program that displays disk space utilization as reported by
+du(1) in an interactive full-screen folding outline.  tdu displays the
+space taken by each directory, including all its descendents.  The
+user can navigate the tree structure and open (or close) directories
+in order to display (or hide) the utilization of subdirectories (and
+files, if du -x is used) within each directory.  The entries can be
+sorted by filename or space utilizied, or reverted back to their
+original sorting order.
+.SH KEYS
+.IP "q, x, Control-C, Escape"
+Exit the tdu program.
+.IP "Up, Down, Home, End, PgUp, PgDn"
+Navigate through the directories and filenames being displayed.
+.IP "<, >"
+Keys that perform the same functions as Home and End.
+.IP "Control-N, Control-P, Control-B, Control-F"
+Emacs bindings that perform the same functions as the arrows.
+.IP "h, j, k, l"
+vi bindings that perform the same functions as the arrows.
+.IP "Right"
+If the cursor is located at a directory, shows immediate descendents
+of that directory.  If Right is pressed many times in succession,
+opens the tree to display as many levels of descending directories and
+filenames.
+.IP "1, 2, 3, 4, 5, 6, 7, 8, 9"
+Open the current node to display 1 to 9 levels of descending
+directories ans filenames.
+.IP "*"
+Display all levels of descendents of the current node.
+.IP "Left, 0"
+If the cursor is located at a directory, hides all of its descendents
+from the display.
+.IP "p"
+Move the cursor to the current node's parent.
+.IP "s, S"
+Sort the direct descendents of the current node in ascending (or
+descending) order of size.
+.IP "n, N"
+Sort the direct descendents of the current node in ascending (or
+descending) order of filename.
+.IP "u, U"
+Re-sort the direct descendents of the current node in the original
+order (or its reverse).
+.IP "= then s, S, n, N, u, or U"
+Perform one of the above sorting operations recursively.
+.IP "Control-L"
+Move the current node to the center of the screen as closely as
+possible.
+.IP "Control-R"
+Refresh the entire display, incase it has been clobbered.
+.SH OPTIONS
+.IP -h
+Display a summary of command-line options.
+.IP -V
+Display the version of the program and its license terms.
+.IP -A
+Use ASCII characters instead of line-drawing characters.
+.IP "-G group-name and -I pattern"
+The "-a" option of du(1) is used to obtain usage information on all
+files, not just directories.  These options lump filenames within a
+directory into groups in order to display their collective disk
+utilizaion.  Groups are displayed as fake directories, and individual
+filenames within those groups can still be displayed.
+
+"-G group-name" is specified first, then multiple "-I pattern" options
+can be specified to group files matched by those patterns into the
+group-name.  Patterns can contain the "?" and "*" wildcard characters,
+which respectively match exactly one or any number of characters in
+a filename.
+
+Additional groups of -G and -I options can be specified.
+
+The first pattern that each filename matches determines which group
+into which the filename is classified.
+.SH EXAMPLES
+.IP "du -ax | tdu -G 'BACKUP FILES' -I '*~' -I '#*#' -G 'POSTSCRIPT' -I '*.ps'"
+Collectively displays usage for all backup files in a particular
+directory under the name "BACKUP FILES", and all PostScript files
+under the name "POSTSCRIPT".
+.SH BUGS
+This program does not handle terminal resizing right now.
+.SH LIMITATIONS
+The use of certain options for du will or may cause this program to
+not work properly.  Most if not all of these limitations also affect
+xdu(1).
+
+This program cannot handle du's -h/--human-readable option, since it
+expects to read integer block sizes.
+
+du's -c/--total option will mislead tdu.
+
+du's -b/--bytes option may produce integers too large for tdu to
+store, depending on the platform on which tdu was compiled.
+
+This program does not currently have a -0/--null option to handle du's
+output if du is supplied with the same option.
+
+du's -S/--separate-dirs option may mislead tdu.
+.SH CAVEATS
+This program does not provide online help.
+.SH AUTHOR
+Darren Stuart Embry (dse@webonastick.com).
+.SH COPYRIGHT
+This program is free software.  It can be distributed and/or modified
+under the terms of the GNU General Public License.  For more details
+you can view it at http://dse.webonastick.com/tdu/COPYING.txt .
+.SH "SEE ALSO"
+.BR du (1),
+.BR xdu (1)

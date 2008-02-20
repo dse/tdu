@@ -1,0 +1,28 @@
+.PHONY: profile time publish test-manpage
+
+profile:
+	mkdir -p perf && \
+	date="`date +%s`" && \
+	tmon_out="perf/tmon-$$date.out" && \
+	tmon_txt="perf/tmon-$$date.txt" && \
+	PERL_DPROF_OUT_FILE_NAME="$$tmon_out" perl -d:DProf ./tdu --parse-only < test/du-test-data.txt && \
+	dprofpp -u "$$tmon_out" | tee "$$tmon_txt"
+
+time:
+	mkdir -p perf && \
+	date="`date +%s`" && \
+	test_txt="perf/test-$$date.txt" && \
+	(command time perl ./tdu --parse-only < test/du-test-data.txt 2>&1) |\
+	tee "$$test_txt"
+
+publish:
+	mkdir -p htdocs ; \
+	r=`svn info tdu | awk '/^Revision:/{print$$2}'` ; \
+	cat tdu | sed 's/\$$Revision\$$/r'"$$r"'/g' > htdocs/tdu.pl.txt
+	svn log tdu > htdocs/tdu.pl.Changelog.txt
+	rsync -av htdocs/ \
+		dse@crow.webonastick.com:/www/webonastick.com/htdocs/tdu
+
+test-manpage: tdu.1
+	groff -Tascii -man tdu.1 | less
+

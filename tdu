@@ -1,0 +1,1205 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+
+#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+our $TDU_VERSION;
+our $TDU_REVISION;
+BEGIN {
+	$TDU_VERSION = "2008-01-05.0";
+	$TDU_REVISION = '$Revision$';
+}
+
+our $COPYRIGHT_INFO;
+BEGIN {
+	$COPYRIGHT_INFO = <<"END_COPYRIGHT_INFO";
+This is tdu version $TDU_VERSION ($TDU_REVISION).
+Copyright (C) 2007, 2008 Darren Stuart Embry.
+
+This program comes with ABSOLUTELY NO WARRANTY.  This is free software, and
+you are welcome to redistribute it under the terms of the GNU General Public
+License, Verison 2, available here:
+
+	http://dse.webonastick.com/tdu/COPYING.txt
+END_COPYRIGHT_INFO
+}
+
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+package TDU::Node;
+# Represents a node in the directory tree, whether it's a directory or file,
+# whether it's visible or not.
+
+use fields qw(name size children expanded parent descendents
+	      isdupath islastchild children_by_name origindex);
+
+# example: my $home_node = TDU::Node->new("home");
+sub new {
+	my ($class, $name) = @_;
+	my $self = fields::new($class);
+	$self->{name} = $name;
+	$self->{children} = [];	# also TDU::Node objects
+	$self->{children_by_name} = {};
+	$self->{expanded} = 0;
+	$self->{islastchild} = 1; # for deciding tree-branch chars to print
+	return $self;
+}
+
+# example: my $child = $home_node->add_child("dse");
+sub add_child {
+	my ($self, $child) = @_;
+	return unless $child;
+ 	if (scalar(@{$self->{children}})) {
+ 		$self->{children}->[-1]->{islastchild} = 0;
+ 	}
+ 	$child->{islastchild} = 1;
+ 	$child->{origindex} = scalar(@{$self->{children}});
+	push(@{$self->{children}}, $child);
+	$child->{parent} = $self;
+	$self->{children_by_name}->{$child->{name}} ||= $child;
+	return $child;
+}
+
+# example: my $child = $root_node->add_node(300424, "/home/dse");
+sub add_node {
+	my TDU::Node $self;
+	my ($pathname, $size);
+	($self, $pathname, $size) = @_;
+
+	my TDU::Node $child = $self;
+	my $new;
+
+	my @nodes;
+	if ($pathname =~ s{ ^ /+ }{}xo) {
+		push(@nodes, "/");
+	}
+	push(@nodes, grep { $_ ne "" } split(qr{ /+ }xo, $pathname));
+	my $final = pop(@nodes);
+	#----------------------------------------------------------------------
+	# for "foo/bar/baz":  $final becomes "baz"
+	#                     and @nodes becomes ("foo", "bar")
+	# for "/foo/bar/baz": $final becomes "baz"
+	#                     and @nodes becomes ("/", "foo", "bar")
+
+	my $shortcut = join($;, @nodes);
+	if (exists($self->{children_by_name}->{$shortcut})) {
+		$child = $self->{children_by_name}->{$shortcut};
+	}
+	else {
+		foreach my $name (@nodes) {
+			$new = $child->{children_by_name}->{$name};
+			if (!$new) {
+				$new = __PACKAGE__->new($name);
+				$child->add_child($new);
+			}
+			$child = $new;
+		}
+		$self->{children_by_name}->{$shortcut} = $child;
+	}
+
+	$new = $child->{children_by_name}->{$final};
+	if (!$new) {
+		$new = __PACKAGE__->new($final);
+		$child->add_child($new);
+	}
+	$child = $new;
+
+	if (defined($child->{size}) and $child->{size} != $size) {
+		# This should only happen if the same pathname is specified
+		# more than once in the input.
+		warn("UNEXPECTED ERROR - conflicting entry for $pathname: ",
+		     "size = $size, previously set to $child->{size}\n");
+	}
+	else {
+		$child->{size} = $size;
+		$child->{isdupath} = 1;
+	}
+	return $child;
+}
+
+# This *should* only fix things like parent nodes that didn't get filled in
+# when someone runs du /some/directory/deep/inside/the/filesystem.
+sub fix_tree_sizes {
+	my ($self) = @_;
+	return $self->{size} if defined($self->{size});
+	my $size = 0;
+	foreach my $child (@{$self->{children}}) {
+		$size += $child->fix_tree_sizes();
+	}
+	$self->{size} = $size;
+	return $size;
+}
+
+# For each node, computes the total number of descendents (children,
+# grandchildren, etc.).  Is recursive.
+sub fix_tree_descendents {
+	my ($self) = @_;
+	return $self->{descendents} if defined($self->{descendents});
+	my $descendents = scalar(@{$self->{children}});
+	foreach my $child (@{$self->{children}}) {
+		$descendents += $child->fix_tree_descendents();
+	}
+	$self->{descendents} = $descendents;
+	return $descendents;
+}
+
+# example: my $nnodes = $selected_node->expand();
+# Returns the total number of nodes made visible.
+sub expand {
+	my ($self, $level) = @_;
+	my $ret = $self->internal_expand($level);
+	for (my $p = $self->{parent}; $p; $p = $p->{parent}) {
+		$p->{expanded} += $ret;
+	}
+	return $ret;
+}
+
+# Internal method used by expand().
+sub internal_expand {
+	my ($self, $level) = @_;
+	my $ret = 0;
+	my $expanded;
+	return $ret unless $self and scalar(@{$self->{children}}) and $level;
+	if (!$self->{expanded}) {
+		$ret += ($self->{expanded} = scalar(@{$self->{children}}));
+	}
+	if ($level > 0) {
+		--$level;
+	}
+	if ($level) {
+		foreach my $child (@{$self->{children}}) {
+			$expanded = $child->internal_expand($level);
+			$ret += $expanded;
+			$self->{expanded} += $expanded;
+		}
+	}
+	return $ret;
+}
+
+# example: my $nnodes = $selected_node->collapse();
+# Returns the total number of nodes made hidden.
+sub collapse {
+	my ($self) = @_;
+	my $collapsed = $self->{expanded};
+	if ($collapsed) {
+		for (my $p = $self->{parent}; $p; $p = $p->{parent}) {
+			$p->{expanded} -= $self->{expanded};
+		}
+		$self->internal_collapse();
+	}
+	return $collapsed;
+}
+
+# Internal method used by collapse().
+sub internal_collapse {
+	my ($self) = @_;
+	return unless scalar(@{$self->{children}}) and $self->{expanded};
+	$self->{expanded} = 0;
+	foreach my $child (@{$self->{children}}) {
+		$child->internal_collapse();
+	}
+}
+
+# example: $node = $root_node->find_node_numbered(25);
+# Finds and returns the nth node listed in the tree starting from 0.
+sub find_node_numbered {
+	my ($self, $selfline) = @_;
+	my $i;
+	my $l;
+	return undef unless ($selfline >= 0);
+	return undef unless ($selfline < (1 + $self->{expanded}));
+	return $self if $selfline == 0;
+	--$selfline;
+	if ($self->{expanded} and scalar(@{$self->{children}})) {
+		$i = 0;
+		while ($i < scalar(@{$self->{children}}) and
+		       $selfline >=
+		       ($l = 1 + $self->{children}->[$i]->{expanded})) {
+			$selfline -= $l;
+			++$i;
+		}
+		return $self->{children}->[$i]->find_node_numbered($selfline);
+	}
+	return undef;
+}
+
+# example: $number = $node->find_node_number_in($root_node).
+# Returns the number of steps down in the listing from $root_node to $node.
+sub find_node_number_in {
+	my ($self, $root) = @_;
+
+	my $n = 0;
+	my $i;
+	while (1) {
+		my $parent = $self->{parent};
+		if (($self == $root) or !$parent) {
+			return $n;
+		}
+		++$n;
+		for ($i = 0;
+		     $i < scalar(@{$parent->{children}})
+		     and ($parent->{children}->[$i] != $self);
+		     ++$i) {
+			$n += (1 + $parent->{children}->[$i]->{expanded});
+		}
+		if ($i == scalar(@{$parent->{children}})) {
+			return -1;
+		}
+		$self = $parent;
+	}
+	return $n;
+}
+
+# example: $node->tree_sort($sub, $reverse, $recursive);
+# Sorts nodes.  $sub is any method one might pass to sort, including:
+#     \&TDU::Node::cmp_unsort
+#     \&TDU::Node::cmp_size
+#     \&TDU::Node::cmp_name
+#     ...
+sub tree_sort {
+	my ($self, $sub, $reverse, $recursive) = @_;
+	my $child;
+	return unless $self and scalar(@{$self->{children}});
+	my $multiplier = $reverse ? -1 : 1;
+	@{$self->{children}} = sort { $sub->() * $multiplier }
+		@{$self->{children}};
+
+	foreach $child (@{$self->{children}}) {
+		$child->{islastchild} = 0;
+	}
+	$self->{children}->[-1]->{islastchild} = 1;
+
+	if ($recursive) {
+		foreach $child (@{$self->{children}}) {
+			$child->tree_sort($sub, $reverse, $recursive);
+		}
+	}
+}
+
+# example: $root_node->parse_line("  300424  /home/dse");
+# Is executed on each line of input to tdu.
+sub parse_line {
+	my ($self, $line) = @_;
+	chomp($line);
+	return unless $line =~ /^\s*(\d+)\s*(.*)$/;
+	$self->add_node($2, $1);
+}
+
+# Finalize the tree structure once all input is parsed.
+sub parse_eof {
+	my ($self) = @_;
+	$self->fix_tree_sizes();
+	$self->fix_tree_descendents();
+}
+
+# Methods passed to tree_sort().
+sub cmp_unsort {
+	return $a->{origindex} <=> $b->{origindex};
+}
+sub cmp_size {
+	return $a->{size} <=> $b->{size};
+}
+sub cmp_name {
+	return $a->{name} cmp $b->{name};
+}
+sub cmp_descendents {
+	return $a->{descendents} cmp $b->{descendents};
+}
+
+package TDU::Interface;
+# Implements TDU's curses interface.
+# Though we use this as a class, we only create one object.
+
+use fields qw(root_node
+	      cursor_line
+	      start_line
+	      prev_start_line
+	      visible_lines
+	      window
+	      ascii_tree
+	      debug
+	      status_window
+	      main_window
+	      show_descendents
+
+	      clear_status_line
+	      expandlevel
+	      lastkey
+	    );
+
+use Curses qw();
+
+sub new {
+	my ($class, $name) = @_;
+	my $self = fields::new($class);
+	return $self;
+}
+
+use constant IAM_LAST       => 0;
+use constant IAM_NOTLAST    => 1;
+use constant PARENT_LAST    => 2;
+use constant PARENT_NOTLAST => 3;
+
+# For strings displayed instead of line-drawing characters as needed.
+our @TREE_CHARS_STRING;
+BEGIN {
+	@TREE_CHARS_STRING = ("`- ", "+- ", "   ", "|  ");
+}
+
+sub debug {
+	my $self = shift();
+	if (!-t 2) {
+		warn(@_);
+	}
+}
+
+# Wrapper methods around addch and printw that don't wrap around the last
+# column.  Various existing ncurses facilities that don't wrap, and
+# why I don't use them:
+
+# [mv][w]add_wch[n]str() - chstrs are a bitch to build up.
+# [mv][w]ins[n]str() - doesn't move the cursor forward.
+
+sub waddch_nowrap {
+	my ($self, $window, $ch) = @_;
+
+	my ($y, $x, $maxy, $maxx);
+	$window->getmaxyx($maxy, $maxx);
+	$window->getyx($y, $x);
+
+	if (($maxx - $x - 1) < 1) {
+		return Curses::ERR;
+	}
+	return $window->addch($ch);
+}
+
+sub waddstr_nowrap {
+	my ($self, $window, $format, @args) = @_;
+	my $string = sprintf($format, @args);
+
+ 	my ($y, $x, $maxy, $maxx);
+ 	$window->getmaxyx($maxy, $maxx);
+ 	$window->getyx($y, $x);
+
+	if (($maxx - $x - 1) < 1) {
+		return Curses::ERR;
+	}
+	return $window->addnstr($string, $maxx - $x - 1);
+}
+
+sub display_tree_chars {
+	my ($self, $node, $levelsleft, $thisisit) = @_;
+	if ($node->{parent} && $levelsleft > 0) {
+		$self->display_tree_chars($node->{parent},
+					  ($levelsleft < 0) ? -1
+					  : ($levelsleft - 1),
+					  0);
+	}
+	return unless $levelsleft;
+
+	my $tc = ($thisisit
+		  ? ($node->{islastchild}
+		     ? IAM_LAST : IAM_NOTLAST)
+		  : ($node->{islastchild}
+		     ? PARENT_LAST : PARENT_NOTLAST));
+
+	if ($self->{ascii_tree}) {
+		$self->waddstr_nowrap($self->{main_window},
+				      $TREE_CHARS_STRING[$tc]);
+	}
+	else {
+		if ($tc == 0) {
+			$self->waddch_nowrap($self->{main_window},
+					     Curses::ACS_LLCORNER);
+			$self->waddch_nowrap($self->{main_window},
+					     Curses::ACS_HLINE);
+		}
+		elsif ($tc == 1) {
+			$self->waddch_nowrap($self->{main_window},
+					     Curses::ACS_LTEE);
+			$self->waddch_nowrap($self->{main_window},
+					     Curses::ACS_HLINE);
+		}
+		elsif ($tc == 2) {
+			$self->waddch_nowrap($self->{main_window}, " ");
+			$self->waddch_nowrap($self->{main_window}, " ");
+		}
+		elsif ($tc == 3) {
+			$self->waddch_nowrap($self->{main_window},
+					     Curses::ACS_VLINE);
+			$self->waddch_nowrap($self->{main_window}, " ");
+		}
+		$self->waddch_nowrap($self->{main_window}, " ");
+	}
+}
+
+sub display_nodes {
+	my ($self, $line, $lines, $node, $nodeline, $cursor) = @_;
+	my $nodes = $self->display_nodes_($line,
+					  $lines,
+					  $node,
+					  $nodeline,
+					  $cursor,
+					  0);
+	$line += $nodes;
+	$lines -= $nodes;
+	for (; $lines > 0; ++$line, --$lines) {
+		$self->display_node($line,
+				    undef,
+				    0,
+				    0);
+	}
+	return $nodes;
+}
+
+sub display_nodes_ {
+	my ($self, $line, $lines, $node, $nodeline, $cursor, $level) = @_;
+
+	return 0 unless $node;
+	return 0 unless $nodeline >= 0;
+	return 0 unless $nodeline < (1 + $node->{expanded});
+	return 0 unless $lines;
+
+	my $ret = 0;
+	my $i;
+	my $l;
+
+	if ($nodeline == 0) {
+		$self->display_node($line, $node, $level,
+				    $nodeline == $cursor);
+		++$ret;
+		++$line;
+		--$lines;
+		--$cursor;
+	}
+	else {
+		--$nodeline;
+		--$cursor;
+	}
+	if ($node->{expanded} and scalar(@{$node->{children}}) and $lines) {
+		$i = 0;
+		while ($i < scalar(@{$node->{children}}) and
+		       $nodeline >= ($l = 1 +
+				     $node->{children}->[$i]->{expanded})) {
+			$nodeline -= $l;
+			$cursor -= $l;
+			++$i;
+		}
+		while ($i < scalar(@{$node->{children}}) and $lines > 0) {
+			$l = $self->display_nodes_($line,
+						   $lines,
+						   $node->{children}->[$i],
+						   $nodeline,
+						   $cursor,
+						   $level + 1);
+			$ret += $l;
+			$line += $l;
+			$lines -= $l;
+			$nodeline = 0;
+			$cursor -= (1 + $node->{children}->[$i]->{expanded});
+			++$i;
+		}
+	}
+
+	return $ret;
+}
+
+sub hide_cursor {
+	my ($self) = @_;
+	Curses::curs_set(0);
+}
+
+sub show_cursor {
+	my ($self) = @_;
+	$self->{main_window}->move($self->{cursor_line} - $self->{start_line},
+				   0);
+	Curses::curs_set(1);
+}
+
+sub display_node {
+	my ($self, $line, $node, $level, $iscursor) = @_;
+	$self->{main_window}->move($line, 0);
+	$self->{main_window}->clrtoeol();
+	if ($node) {
+		if ($self->{debug}) {
+			my $number =
+				$node->find_node_number_in($self->{root_node});
+			$self->waddstr_nowrap($self->{main_window},
+					      "[%10d] ", $number);
+		}
+		$self->waddstr_nowrap($self->{main_window},
+				      "%11ld ", $node->{size});
+		if ($self->{show_descendents}) {
+			$self->waddstr_nowrap($self->{main_window},
+					      "%11ld ", $node->{descendents});
+		}
+		$self->display_tree_chars($node, $level, 1);
+		$self->waddstr_nowrap($self->{main_window},
+				      "%s", $node->{name});
+		if (scalar(@{$node->{children}}) and !$node->{expanded}) {
+			$self->waddstr_nowrap($self->{main_window}, " ...");
+		}
+	}
+}
+
+sub finish {
+	my ($self, $exit) = @_;
+	Curses::endwin();
+	if (defined($exit)) {
+		exit($exit);
+	}
+}
+
+sub refresh {
+	my ($self) = @_;
+	my $lines;
+	if (!defined($self->{prev_start_line})) {
+		$self->display_nodes(0,
+				     $self->{visible_lines},
+				     $self->{root_node},
+				     $self->{start_line},
+				     $self->{cursor_line});
+	}
+	else {
+		if ($self->{cursor_line} < 0) {
+			$self->{cursor_line} = 0;
+		}
+		elsif ($self->{cursor_line} > $self->{root_node}->{expanded}) {
+			$self->{cursor_line} = $self->{root_node}->{expanded};
+		}
+		if ($self->{cursor_line} < $self->{start_line}) {
+			$self->{start_line} = $self->{cursor_line};
+		}
+		elsif ($self->{cursor_line} >
+		       ($self->{start_line} + $self->{visible_lines} - 1)) {
+			$self->{start_line} = $self->{cursor_line}
+				- ($self->{visible_lines} - 1);
+		}
+		if ($self->{start_line} < 0) {
+			$self->{start_line} = 0;
+		}
+		elsif ($self->{start_line} > $self->{root_node}->{expanded}) {
+			$self->{start_line} = $self->{root_node}->{expanded};
+		}
+		$lines = $self->{start_line} - $self->{prev_start_line};
+		if ($lines <= -$self->{visible_lines}
+		    or $lines >= $self->{visible_lines}) {
+			$self->display_nodes(0,
+					     $self->{visible_lines},
+					     $self->{root_node},
+					     $self->{start_line},
+					     $self->{cursor_line});
+		}
+		elsif ($lines < 0) {
+			$self->{main_window}->scrl($lines);
+			$self->display_nodes(0,
+					     -$lines,
+					     $self->{root_node},
+					     $self->{start_line},
+					     $self->{cursor_line});
+		}
+		elsif ($lines > 0) {
+			$self->{main_window}->scrl($lines);
+			$self->display_nodes($self->{visible_lines} - $lines,
+					     $lines,
+					     $self->{root_node},
+					     $self->{start_line}
+					     + $self->{visible_lines} - $lines,
+					     $self->{cursor_line});
+		}
+	}
+	$self->{status_window}->refresh();
+	$self->{main_window}->refresh();
+	$self->show_cursor();
+	$self->{prev_start_line} = $self->{start_line};
+}
+
+sub display {
+	my ($self) = @_;
+	$self->display_nodes(0,
+			     $self->{visible_lines},
+			     $self->{root_node},
+			     $self->{start_line},
+			     $self->{cursor_line});
+	$self->refresh();
+}
+
+sub expand {
+	my ($self, $levels, $redraw) = @_;
+	my $n = $self->{root_node}->find_node_numbered($self->{cursor_line});
+	return unless $n;
+
+	if (!$redraw && ($levels > 1)) {
+		$redraw = 1;
+	}
+
+	my $scrolllines = $n->expand($levels);
+	return unless $scrolllines;
+	if ($redraw) {
+		$self->display_nodes($self->{cursor_line}
+				     - $self->{start_line},
+				     $self->{visible_lines}
+				     - ($self->{cursor_line}
+					- $self->{start_line}),
+				     $self->{root_node},
+				     $self->{cursor_line},
+				     $self->{cursor_line});
+		$self->refresh();
+	}
+	else {
+		my $maxlines = $self->{visible_lines}
+			- ($self->{cursor_line} - $self->{start_line});
+		if ($scrolllines >= $maxlines - 1) {
+			$self->display_nodes($self->{cursor_line}
+					     - $self->{start_line},
+					     $self->{visible_lines}
+					     - ($self->{cursor_line}
+						- $self->{start_line}),
+					     $self->{root_node},
+					     $self->{cursor_line},
+					     $self->{cursor_line});
+		}
+		else {
+			$self->refresh();
+			$self->{main_window}->insdelln($scrolllines);
+			$self->display_nodes($self->{cursor_line}
+					     - $self->{start_line},
+					     $scrolllines + 1,
+					     $self->{root_node},
+					     $self->{cursor_line},
+					     $self->{cursor_line});
+		}
+		$self->refresh();
+	}
+}
+
+sub collapse {
+	my ($self, $redraw) = @_;
+
+	my $n = $self->{root_node}->find_node_numbered($self->{cursor_line});
+	return unless $n;
+
+	my $scrolllines = $n->collapse();
+	return unless $scrolllines;
+
+	if ($redraw) {
+		$self->display_nodes($self->{cursor_line}
+				     - $self->{start_line},
+				     $self->{visible_lines}
+				     - ($self->{cursor_line}
+					- $self->{start_line}),
+				     $self->{root_node},
+				     $self->{cursor_line},
+				     $self->{cursor_line});
+		$self->refresh();
+	}
+	else {
+		my $maxlines = $self->{visible_lines}
+			- ($self->{cursor_line} - $self->{start_line});
+		if ($scrolllines >= $maxlines - 1) {
+			$self->display_nodes($self->{cursor_line}
+					     - $self->{start_line},
+					     $self->{visible_lines}
+					     - ($self->{cursor_line}
+						- $self->{start_line}),
+					     $self->{root_node},
+					     $self->{cursor_line},
+					     $self->{cursor_line});
+		}
+		else {
+			$self->refresh();
+			$self->{main_window}->insdelln(-$scrolllines);
+			$self->display_nodes($self->{cursor_line}
+					     - $self->{start_line},
+					     1,
+					     $self->{root_node},
+					     $self->{cursor_line},
+					     $self->{cursor_line});
+			$self->display_nodes($self->{visible_lines}
+					     - $scrolllines,
+					     $scrolllines,
+					     $self->{root_node},
+					     $self->{cursor_line}
+					     + $maxlines - $scrolllines,
+					     $self->{cursor_line});
+		}
+		$self->refresh();
+	}
+}
+
+sub move_up {
+	my ($self, $n) = @_;
+	$self->{cursor_line} -= $n;
+	$self->refresh();
+}
+
+sub move_down {
+	my ($self, $n) = @_;
+	$self->{cursor_line} += $n;
+	$self->refresh();
+}
+
+sub move_to {
+	my ($self, $n) = @_;
+	$self->{cursor_line} = $n;
+	$self->refresh();
+}
+
+sub page_up {
+	my ($self) = @_;
+	$self->{cursor_line} -= ($self->{visible_lines} - 1);
+	$self->refresh();
+}
+
+sub page_down {
+	my ($self) = @_;
+	$self->{cursor_line} += ($self->{visible_lines} - 1);
+	$self->refresh();
+}
+
+sub status_line_message {
+	my ($self, $message) = @_;
+	return unless defined(my $window = $self->{status_window});
+	$self->hide_cursor();
+	$window->move(0, 0);
+	$window->clrtoeol();
+	if (defined($message)) {
+		$window->attron(Curses::A_REVERSE);
+		$self->waddstr_nowrap($window, $message);
+		$window->attroff(Curses::A_REVERSE);
+	}
+	$self->{status_window}->refresh();
+}
+
+sub sort {
+	my ($self, $fp, $reverse, $isrecursive) = @_;
+	my $n = $self->{root_node}->find_node_numbered($self->{cursor_line});
+	if ($n) {
+		# compute number of lines to redisplay.
+		my $lines = $n->{expanded};
+		my $maxlines = $self->{visible_lines} -
+			($self->{cursor_line} - $self->{start_line}) - 1;
+		if ($lines > $maxlines) {
+			$lines = $maxlines;
+		}
+
+		$self->status_line_message("sorting...");
+		$n->tree_sort($fp, $reverse, $isrecursive);
+		$self->status_line_message(undef);
+
+		$self->display_nodes($self->{cursor_line}
+				     - $self->{start_line} + 1,
+				     $lines,
+				     $self->{root_node},
+				     $self->{cursor_line} + 1,
+				     $self->{cursor_line});
+		$self->refresh();
+	}
+}
+
+BEGIN {
+	require "sys/ioctl.ph";
+}
+
+sub get_screen_size {
+	my ($self) = @_;
+	local *TTY;
+	my $winsize;
+	my ($row, $col, $xpixel, $ypixel);
+	eval {
+		die "no TIOCGWINSZ\n" unless defined &TIOCGWINSZ;
+		open(TTY, "+</dev/tty") or die "No tty: $!";
+		unless (ioctl(TTY, &TIOCGWINSZ, $winsize='')) {
+			die sprintf("$0: ioctl TIOCGWINSZ (%08x: $!)\n",
+				    &TIOCGWINSZ);
+		}
+		($row, $col, $xpixel, $ypixel) = unpack('S4', $winsize);
+	};
+	if ($@) {
+		$self->finish();
+		die($@);
+	}
+	return ($row, $col);
+}
+
+sub compute_visible_lines {
+	my ($self) = @_;
+	my ($bx, $by, $ex, $ey);
+	$self->{main_window}->getbegyx($by, $bx);
+	$self->{main_window}->getmaxyx($ey, $ex);
+	$self->{visible_lines} = $ey - $by;
+}
+
+sub resize_handler {
+	my ($self) = @_;
+
+	Curses::endwin();
+
+	my ($lines, $columns) = $self->get_screen_size();
+	$Curses::COLS  = $columns;
+	$Curses::LINES = $lines;
+	$ENV{COLUMNS}  = $columns if exists($ENV{COLUMNS});
+	$ENV{LINES}    = $lines   if exists($ENV{LINES});
+
+	$self->{main_window}->delwin();
+	$self->{status_window}->delwin();
+
+	$self->{window}->erase();
+	$self->{window}->resize($lines, $columns);
+	Curses::doupdate();
+
+ 	$self->{main_window} =
+ 		Curses::newwin($Curses::LINES - 1, $Curses::COLS, 0, 0);
+ 	$self->{status_window} =
+ 		Curses::newwin(1, $Curses::COLS, $Curses::LINES - 1, 0);
+
+	$self->{main_window}->keypad(1);
+	$self->{main_window}->scrollok(1);
+
+	$self->compute_visible_lines();
+
+	$self->{prev_start_line} = undef; # forces total refresh
+	if ($self->{cursor_line} > ($self->{start_line}
+				    + $self->{visible_lines} - 1)) {
+		$self->{start_line} = $self->{cursor_line}
+			- ($self->{visible_lines} - 1);
+	}
+
+	$self->display();
+}
+
+sub init_ncurses {
+	my ($self) = @_;
+
+	open(\*STDIN, "</dev/tty");
+
+	$self->{window} = Curses->new();
+	$self->{window}->keypad(1);
+	Curses::nonl();
+	Curses::cbreak();
+	Curses::noecho();
+	$self->{window}->scrollok(1);
+
+ 	$self->{main_window} =
+ 		Curses::newwin($Curses::LINES - 1, $Curses::COLS, 0, 0);
+ 	$self->{status_window} =
+ 		Curses::newwin(1, $Curses::COLS, $Curses::LINES - 1, 0);
+
+	$self->{main_window}->keypad(1);
+	$self->{main_window}->scrollok(1);
+
+	$self->compute_visible_lines();
+
+	$self->{prev_start_line} = undef;
+	$self->{start_line} = 0;
+	$self->{cursor_line} = 0;
+
+	$self->display();
+}
+
+our $ONLINE_HELP;
+BEGIN {
+	$ONLINE_HELP = <<"END_ONLINE_HELP";
+NAVIGATION:
+  UP,DOWN,PGUP,PGDOWN   up,down by line,page
+  HOME or <,END or >    first, last line
+  p                     up to parent directory
+EXPANDING/COLLAPSING:
+  LEFT or 0, RIGHT   collapse, expand
+  1-9,*              expand 1-9,all levels
+SORTING CHILDREN:
+  s,S   sort,reverse sort by size
+  n,N   sort,reverse sort by name
+  u,U   unsort to original order
+  d,D   sort,reverse sort by number of descendents
+  =s, =S, =u, =U, -n, =N   sort recursively
+MISCELLANY:
+  #         show/hide number of descendents
+  A         toggle ASCII line-drawing characters
+  Ctrl-L    recenter line
+  Ctrl-R    refresh display
+  q,x,ESC   quit
+  ?         online help
+  C         copyright info
+END_ONLINE_HELP
+}
+
+sub help {
+	my ($self, $message) = @_;
+	my $window = $self->{main_window};
+
+	$window->erase();
+	$window->move(0, 0);
+
+	my @lines = split(/\r?\n/, $message);
+	while (defined(my $line = shift(@lines))) {
+		$window->clrtoeol();
+		$window->addstr($line);
+		my ($maxy, $maxx, $y, $x);
+		$window->getmaxyx($maxy, $maxx);
+		$window->getyx($y, $x);
+		if ($y >= ($maxy - 1) and scalar(@lines)) {
+			$window->refresh();
+			$self->status_line_message("More... (press any key)");
+			$window->getch();
+			$window->erase();
+			$window->move(0, 0);
+		}
+		else {
+			$window->addstr("\n");
+		}
+	}
+	$window->refresh();
+	$self->status_line_message("Press any key to continue.");
+	$window->getch();
+	$self->status_line_message();
+
+	$self->{prev_start_line} = undef;
+	$self->display();
+}
+
+sub keypress {
+	my ($self, $key) = @_;
+
+	my $sortrecursive = ($self->{lastkey} eq '=');
+
+	if ($key eq "q" or $key eq "Q"
+	    or $key eq "x" or $key eq "X"
+	    or $key eq chr(3)
+	    or $key eq chr(27)) {
+		$self->finish(0);
+		last;
+	}
+	elsif ($key eq "?") {
+		$self->help($ONLINE_HELP);
+		next;
+	}
+	elsif ($key eq "C" or $key eq "c") {
+		$self->help($main::COPYRIGHT_INFO);
+		next;
+	}
+	elsif ($key eq "k" or $key eq "K" or $key eq chr(16)
+	       or $key eq Curses::KEY_PREVIOUS
+	       or $key eq Curses::KEY_UP) {
+		$self->hide_cursor();
+		$self->move_up(1);
+	}
+	elsif ($key eq "j" or $key eq "J"
+	       or $key eq chr(14)
+	       or $key eq Curses::KEY_NEXT
+	       or $key eq Curses::KEY_DOWN) {
+		$self->hide_cursor();
+		$self->move_down(1);
+	}
+	elsif ($key eq "<" or $key eq Curses::KEY_HOME) {
+		$self->hide_cursor();
+		$self->move_to(0);
+	}
+	elsif ($key eq ">" or $key eq Curses::KEY_END) {
+		$self->hide_cursor();
+		$self->move_to($self->{root_node}->{expanded});
+	}
+	elsif ($key eq Curses::KEY_SPREVIOUS) {
+		$self->hide_cursor();
+		$self->move_up(10);
+	}
+	elsif ($key eq Curses::KEY_SNEXT) {
+		$self->hide_cursor();
+		$self->move_down(10);
+	}
+	elsif ($key eq Curses::KEY_PPAGE) {
+		$self->hide_cursor();
+		$self->page_up();
+	}
+	elsif ($key eq Curses::KEY_NPAGE) {
+		$self->hide_cursor();
+		$self->page_down();
+	}
+	elsif ($key eq "p" or $key eq "P") {
+		my $node = $self->{root_node}->find_node_numbered($self->{cursor_line});
+		my $parent = $node ? $node->{parent} : undef;
+		if ($parent) {
+			$self->hide_cursor();
+			$self->move_to($parent->find_node_number_in($self->{root_node}));
+		}
+	}
+	elsif ($key eq "u") {
+		$self->sort(\&TDU::Node::cmp_unsort,
+			    0, $sortrecursive);
+	}
+	elsif ($key eq "U") {
+		$self->sort(\&TDU::Node::cmp_unsort,
+			    1, $sortrecursive);
+	}
+	elsif ($key eq "s") {
+		$self->sort(\&TDU::Node::cmp_size, 0, $sortrecursive);
+	}
+	elsif ($key eq "S") {
+		$self->sort(\&TDU::Node::cmp_size, 1, $sortrecursive);
+	}
+	elsif ($key eq "n") {
+		$self->sort(\&TDU::Node::cmp_name, 0, $sortrecursive);
+	}
+	elsif ($key eq "N") {
+		$self->sort(\&TDU::Node::cmp_name, 1, $sortrecursive);
+	}
+	elsif ($key eq "d") {
+		$self->sort(\&TDU::Node::cmp_descendents,
+			    0, $sortrecursive);
+	}
+	elsif ($key eq "D") {
+		$self->sort(\&TDU::Node::cmp_descendents,
+			    1, $sortrecursive);
+	}
+	elsif ($key eq "l" or $key eq "L" or $key eq "1"
+	       or $key eq chr(6)
+	       or $key eq Curses::KEY_RIGHT) {
+		$key = Curses::KEY_RIGHT;
+		if ($self->{lastkey} eq Curses::KEY_RIGHT
+		    or $self->{lastkey} =~ /^[2-9]$/) {
+			++$self->{expandlevel};
+		}
+		else {
+			$self->{expandlevel} = 1;
+		}
+		$self->expand($self->{expandlevel}, $self->{expandlevel} > 1);
+	}
+	elsif ($key eq chr(12)) {
+		$self->{start_line} =
+			$self->{cursor_line} -
+				int($self->{visible_lines} / 2);
+		$self->refresh();
+	}
+	elsif ($key eq chr(18)) {
+		$self->{status_window}->redrawwin();
+		$self->{status_window}->refresh();
+		$self->{main_window}->redrawwin();
+		$self->{main_window}->refresh();
+	}
+	elsif ($key eq "#") {
+		$self->{show_descendents} = !$self->{show_descendents};
+		$self->{prev_start_line} = undef;
+		$self->display();
+	}
+	elsif ($key eq "A" or $key eq "a") {
+		$self->{ascii_tree} = !$self->{ascii_tree};
+		$self->{prev_start_line} = undef;
+		$self->display();
+	}
+	elsif ($key =~ /^[2-9]$/) {
+		$self->{expandlevel} = $key;
+		$self->expand($self->{expandlevel}, 1);
+	}
+	elsif ($key eq "*") {
+		$self->expand(-1, 1);
+	}
+	elsif ($key eq "h" or $key eq "H" or $key eq "0"
+	       or $key eq chr(2)
+	       or $key eq Curses::KEY_LEFT) {
+		$self->{expandlevel} = 0;
+		$self->collapse(0);
+	}
+
+	$self->{lastkey} = $key;
+}
+
+sub run {
+	my ($self, $node) = @_;
+
+	$self->{expandlevel} = undef;
+	$self->{lastkey} = "";
+
+	$self->{root_node} = $node;
+
+	# when the main program creates the main node via
+	# TDU::Node->new("[TOTAL]") and the "[TOTAL]" node only has one child,
+	# descend to that child.
+	if (scalar(@{$self->{root_node}->{children}}) == 1) {
+		$self->{root_node} = $self->{root_node}->{children}->[0];
+	}
+
+	$SIG{'INT'} = sub {
+		$self->finish(0);
+	};
+	$SIG{'WINCH'} = sub {
+		$self->resize_handler();
+	};
+
+	$self->init_ncurses();
+	$self->status_line_message("This is tdu. " .
+				   "Type ? for help. " .
+				   "Type C for license terms.");
+	$self->{clear_status_line} = 1;
+	$self->show_cursor();
+
+	while (1) {
+		my $key = $self->{main_window}->getch();
+		if ($self->{clear_status_line}) {
+			$self->status_line_message(undef);
+			$self->show_cursor();
+			$self->{clear_status_line} = 0;
+		}
+		$self->keypress($key);
+	}
+}
+
+###############################################################################
+
+package main;
+
+sub usage {
+	print(<<"END");
+usage: du [OPTION ...] [FILE ...] | $0 [OPTION ...] [FILE ...]
+  -h                display this message
+  -A, --ascii-tree  display tree branches using ASCII characters
+  -V, --version     show version, license terms
+END
+}
+
+sub version {
+	print($COPYRIGHT_INFO);
+}
+
+my $debug = 0;
+my $parse_only = 0;
+my $ascii_tree = 0;
+
+use Getopt::Long;
+Getopt::Long::Configure("bundling", "gnu_compat");
+Getopt::Long::GetOptions("parse-only" => \$parse_only,
+			 "A|ascii-tree" => \$ascii_tree,
+			 "V|version" => sub { version(); exit(0); },
+			 "h|help" => sub { usage(); exit(0); },
+			 "d|debug" => \$debug
+			)
+	or do { usage(); exit(1); };
+
+local *TTY;
+open(TTY, ">/dev/tty") or die("cannot write /dev/tty: $!\n");
+my $fh = select(TTY); $| = 1; select($fh); # autoflush
+
+my $node = TDU::Node->new("[TOTAL]");
+my $entries = 0;
+while (<>) {
+	$node->parse_line($_);
+	++$entries;
+	if (!($entries % 100)) {
+		print TTY ("$entries entries\r");
+	}
+}
+print TTY ("$entries entries\n");
+close(TTY);
+$node->parse_eof();
+
+if ($parse_only) {
+	exit(0);
+}
+
+$node->expand(2);
+
+my $int = TDU::Interface->new();
+$int->{debug} = $debug;
+$int->{ascii_tree} = $ascii_tree;
+$int->run($node);
+exit(0);

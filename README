@@ -1,0 +1,57 @@
+WHAT IS TDU?
+
+tdu is a text-mode disk usage visualization utility.  When used in conjunction
+with the du(1) utility, tdu displays an interactive full-screen tree that you
+can expand and collapse if you wish to check the utilization of subdirectories
+(and files, if you run du with the -a option).
+
+The manpage, tdu.1, provides more detailed documentation, including
+keybindings and command-line options.
+
+REQUIREMENTS
+
+- Perl 5.8.4 or greater.  May or may work with earlier versions of Perl.
+- The Curses Perl module.
+
+INSTALLATION
+
+If your perl is not located at /usr/bin/perl, modify the first line of the tdu
+program accordingly.
+
+Then just type: make install
+	- Copies the tdu program into /usr/local/bin.
+	- Generates the manpage, tdu.1, and copies it to
+	  /usr/local/share/man/man1.
+	- I'm too lazy to set up autoconf.
+
+Don't want /usr/local?  Try one of the following:
+	make install prefix=/usr
+	make install prefix=$HOME
+
+To install via GNU Stow:
+	mkdir /usr/local/stow
+	make install prefix=/usr/local/stow/tdu
+	(cd /usr/local/stow && stow tdu)
+
+WEB SITE
+
+http://webonastick.com/tdu/
+
+COPYRIGHT
+
+Copyright (C) 2007 Darren Stuart Embry.
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+Place - Suite 330, Boston, MA 02111-1307$
+
