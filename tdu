@@ -32,7 +32,7 @@ package TDU::Node;
 # whether it's visible or not.
 
 use fields qw(name size children expanded parent descendents
-	      isdupath islastchild children_by_name origindex);
+	      islastchild children_by_name origindex);
 
 # example: my $home_node = TDU::Node->new("home");
 sub new {
@@ -113,7 +113,6 @@ sub add_node {
 	}
 	else {
 		$child->{size} = $size;
-		$child->{isdupath} = 1;
 	}
 	return $child;
 }
