@@ -34,84 +34,87 @@ static char *progname = "tdu";
 void
 version_exit (int status)
 {
-  fprintf(stderr,
-	  "\n"
-	  "This is tdu version " TDU_VERSION ".  Copyright (C) 2004 Darren Stuart Embry.\n\n"
-	  "This program may be copied under the terms of the GNU General Public License:\n"
-	  "  http://dse.webonastick.com/tdu/copying.txt\n\n"
-	  "Documentation and other information about this program can be found here:\n"
-	  "  http://dse.webonastick.com/tdu/\n\n"
-	  "Run \"tdu -h\" for a usage summary for this program.\n\n"
-	  );
-  exit(status);
+	fprintf(stderr,
+		"\n"
+		"This is tdu version " TDU_VERSION ".  Copyright (C) 2004 Darren Stuart Embry.\n\n"
+		"This program may be copied under the terms of the GNU General Public License:\n"
+		"  http://dse.webonastick.com/tdu/copying.txt\n\n"
+		"Documentation and other information about this program can be found here:\n"
+		"  http://dse.webonastick.com/tdu/\n\n"
+		"Run \"tdu -h\" for a usage summary for this program.\n\n"
+		);
+	exit(status);
 }
 
 void
 usage_exit (int status)
 {
-  fprintf(stderr,
-          "usage: %s [-h] [-A] [-V] [-G<groupname> -I<pattern> ...] [<file>]\n"
-          "       du [<arg> ...] | %s [-h] [-A] [-G<groupname> -I<pattern> ...]\n"
-          "options: -G<groupname>   specify group of files to collect\n"
-          "         -I<pattern>     specify filename patterns to include in\n"
-          "                         most recently specified group\n"
-          "         -h              display this message\n"
-          "         -A              use ascii chars\n"
-	  "         -V              show version, license terms\n"
-          ,progname,progname);
-  exit(status);
+	fprintf(stderr,
+		"usage: %s [-h] [-A] [-V] [-G<groupname> -I<pattern> ...] [<file>]\n"
+		"       du [<arg> ...] | %s [-h] [-A] [-G<groupname> -I<pattern> ...]\n"
+		"options: -G<groupname>   specify group of files to collect\n"
+		"         -I<pattern>     specify filename patterns to include in\n"
+		"                         most recently specified group\n"
+		"         -h              display this message\n"
+		"         -A              use ascii chars\n"
+		"         -V              show version, license terms\n"
+		,progname,progname);
+	exit(status);
 }
 
 typedef struct options {
-  bool help;
-  int optind;
-  groups_s *groups;
+	bool help;
+	int optind;
+	groups_s *groups;
 } options_s;
 
 options_s *
 get_options (int argc, char **argv)
 {
-  options_s *options;
-  groups_s *groups = NULL;
-  group_s *group = NULL;
-  int c;
+	options_s *options;
+	groups_s *groups = NULL;
+	group_s *group = NULL;
+	int c;
 
-  options = (options_s *)malloc(sizeof(options_s));
-  if (options == NULL) return NULL;
-  options->help = 1; options->optind = -1;
+	options = (options_s *)malloc(sizeof(options_s));
+	if (options == NULL) return NULL;
+	options->help = 1; options->optind = -1;
 
-  while ((c = getopt(argc,argv,optstring)) != -1) {
-    switch (c) {
-    case 'G':
-      if (groups == NULL) groups = new_groups();
-      if (groups) group = find_or_create_group(groups,optarg);
-      break;
-    case 'I':
-      if (group == NULL) {
-        fprintf(stderr,"'-I' option requires '-A' option to be previously"
-                " specified.\n");
-        usage_exit(1);
-      }
-      add_wc(group,optarg);
-      break;
-    case 'A':
-      USE_ACS_CHARS = 0;
-      break;
-    case 'h':
-      usage_exit(0);
-      break;
-    case 'V':
-      version_exit(0);
-      break;
-    default:
-      usage_exit(1);
-      break;
-    }
-  }
+	while ((c = getopt(argc,argv,optstring)) != -1) {
+		switch (c) {
+		case 'G':
+			if (groups == NULL)
+				groups = new_groups();
+			if (groups)
+				group = find_or_create_group(groups,optarg);
+			break;
+		case 'I':
+			if (group == NULL) {
+				fprintf(stderr,
+					"'-I' option requires '-A' option to be previously"
+					" specified.\n");
+				usage_exit(1);
+			}
+			add_wc(group,optarg);
+			break;
+		case 'A':
+			USE_ACS_CHARS = 0;
+			break;
+		case 'h':
+			usage_exit(0);
+			break;
+		case 'V':
+			version_exit(0);
+			break;
+		default:
+			usage_exit(1);
+			break;
+		}
+	}
 
-  options->groups = groups;
-  options->optind = optind;
-  return options;
+	options->groups = groups;
+	options->optind = optind;
+	return options;
 }
 
 /*****************************************************************************/
@@ -119,25 +122,25 @@ get_options (int argc, char **argv)
 int
 main (int argc, char **argv)
 {
-  node_s *node;
-  options_s *options;
-  groups_s *groups;
+	node_s *node;
+	options_s *options;
+	groups_s *groups;
 
-  if (NULL == (options = get_options(argc,argv))) {
-    --argc,++argv;
-  } else {
-    argc -= options->optind;
-    argv += options->optind;
-    groups = options->groups;
-  }
+	if (NULL == (options = get_options(argc,argv))) {
+		--argc,++argv;
+	} else {
+		argc -= options->optind;
+		argv += options->optind;
+		groups = options->groups;
+	}
 
-  node = parse_file(*argv,groups);
+	node = parse_file(*argv,groups);
 
-  if (node) {
-    expand_tree(node,1);
-    tdu_interface_run(node);
-  }
+	if (node) {
+		expand_tree(node,1);
+		tdu_interface_run(node);
+	}
 
-  return 0;
+	return 0;
 }
 

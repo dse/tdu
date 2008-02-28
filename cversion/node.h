@@ -28,32 +28,31 @@
 
 /* Each pathname element has associated with it a node in a tree. */
 typedef struct node {
-  char *name;
-  long size;
-  struct node **kids;
-  long nkids;			/* this node has many direct children */
-  long nkidblocks;		/* allocated in this many "blocks" */
-  struct node *parent;
-  long expanded;		/* number of decendents (children, 
+	char *name;
+	long size;
+	struct node **kids;
+	long nkids;		/* this node has many direct children */
+	long nkidblocks;	/* allocated in this many "blocks" */
+	struct node *parent;
+	long expanded;		/* number of decendents (children, 
 				   grandchildren, etc.) visible */
 
-  /* expanded is used to traverse the tree to find the node for a
-     location expressed as a "line number", allowing us to use
-     integers for our cursor locations and making tdu easier to write.
-     The root node's "line number" is zero; if expanded its first
-     child's "line number" is one, its second child's "line number" is
-     two plus the number of the first child's descendents that are
-     visible. */
+	/* expanded is used to traverse the tree to find the node for a
+	   location expressed as a "line number", allowing us to use integers
+	   for our cursor locations and making tdu easier to write.  The root
+	   node's "line number" is zero; if expanded its first child's "line
+	   number" is one, its second child's "line number" is two plus the
+	   number of the first child's descendents that are visible. */
 
-  long descendents;		/* this node has this many descendents */
-  bool isdupath;		/* this node was found in du's output */
-  bool islastkid;		/* used for printing tree branches */
+	long descendents;	/* this node has this many descendents */
+	bool isdupath;		/* this node was found in du's output */
+	bool islastkid;		/* used for printing tree branches */
 
-  /* islastkid and parent are used by display_tree_chars() to display
-     the appropriate "tree branch" line-drawing characters next to
-     each node */
+	/* islastkid and parent are used by display_tree_chars() to display
+	   the appropriate "tree branch" line-drawing characters next to each
+	   node */
 
-  int origindex;		/* for restoring the original order in
+	int origindex;		/* for restoring the original order in
 				   which a node's children were created */
 } node_s;
 

@@ -31,32 +31,32 @@
 int
 wprintw_custom(WINDOW *win, const char *fmt, ...)
 {
-  va_list ap;
-  int y, x, maxy, maxx;
-  char buffer[BUFFER_SIZE];
-  char *p;                      /* through buffer */
+	va_list ap;
+	int y, x, maxy, maxx;
+	char buffer[BUFFER_SIZE];
+	char *p;		/* through buffer */
 
-  va_start(ap, fmt);            /* looks like i need to do this to pass */
-  va_end(ap);                   /* arg list to vsnprintf(). */
-  vsnprintf(buffer, BUFFER_SIZE, fmt, ap);
+	va_start(ap, fmt);	/* looks like i need to do this to pass */
+	va_end(ap);		/* arg list to vsnprintf(). */
+	vsnprintf(buffer, BUFFER_SIZE, fmt, ap);
 
-  getmaxyx(win, maxy, maxx);
-  for (p = buffer; *p; ++p) {
-    getyx(win, y, x);
-    if (x >= (maxx - 1)) break;
-    if (waddch(win, isprint(*p) ? *p : '?') == ERR) return ERR;
-  }
-  return OK;
+	getmaxyx(win, maxy, maxx);
+	for (p = buffer; *p; ++p) {
+		getyx(win, y, x);
+		if (x >= (maxx - 1)) break;
+		if (waddch(win, isprint(*p) ? *p : '?') == ERR) return ERR;
+	}
+	return OK;
 }
 
 int
 waddch_custom(WINDOW *win, const chtype ch)
 {
-  int y, x, maxy, maxx;
-  getmaxyx(win, maxy, maxx);
-  getyx(win, y, x);
+	int y, x, maxy, maxx;
+	getmaxyx(win, maxy, maxx);
+	getyx(win, y, x);
 
-  if (x >= (maxx - 1)) return ERR;
-  return waddch(win, ch);
+	if (x >= (maxx - 1)) return ERR;
+	return waddch(win, ch);
 }
 

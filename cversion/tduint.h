@@ -38,37 +38,37 @@ extern int USE_ACS_CHARS;
 
 /* different types of "tree branches" that can be displayed" */
 typedef enum tree_chars {
-  IAM_LAST,                     /* lower-left corner of box ---
-                                   printed just before the node's name
-                                   if node is the last child of its
-                                   parent */
-  IAM_NOTLAST,                  /* tee pointing right --- printed just
-                                   before the node's name if node's
-                                   parent has more children */
-  PARENT_LAST,                  /* nothing --- printed if ancestor does
-                                   not have any more children left */
-  PARENT_NOTLAST                /* vertical line --- printed if ancestor
-                                   has children left to display */
+	IAM_LAST,		/* lower-left corner of box --- printed just
+				   before the node's name if node is the
+				   last child of its parent */
+	IAM_NOTLAST,		/* tee pointing right --- printed just
+				   before the node's name if node's
+				   parent has more children */
+	PARENT_LAST,		/* nothing --- printed if ancestor does
+				   not have any more children left */
+	PARENT_NOTLAST		/* vertical line --- printed if ancestor
+				   has children left to display */
 } tree_chars_enum;
 
 /* Type of function used to display things on some type of display */
 
 typedef void (*node_display_fp)
-     (int line,                 /* line # on screen to display (based at 0) */
-      node_s *node,             /* node to display */
-      int level,                /* # levels out to "indent" the node */
-      bool iscursor);           /* is the cursor on this line? */
+(int line,			/* line # on screen to display (based at 0) */
+ node_s *node,			/* node to display */
+ int level,			/* # levels out to "indent" the node */
+ bool iscursor);		/* is the cursor on this line? */
+
 typedef void (*tree_chars_display_fp)
-     (enum tree_chars e);       /* determines which type of "tree branch"
-                                   characters to display */
+(enum tree_chars e);		/* determines which type of "tree branch"
+				   characters to display */
 
 /* A display_s structure is a collection of all functions necessary to
    display "tree branch" characters and information stored in a node
    on some type of display (such as the tdu interface) */
 
 typedef struct display {
-  node_display_fp fpn;
-  tree_chars_display_fp fpt;
+	node_display_fp fpn;
+	tree_chars_display_fp fpt;
 } display_s;
 
 void display_tree_chars(node_s *node, int levelsleft, int thisisit, display_s ds);

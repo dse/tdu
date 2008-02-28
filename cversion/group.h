@@ -24,16 +24,16 @@
 /*****************************************************************************/
 
 typedef struct groups {
-  struct group **group;
-  long ngroups;
-  long nblocks;
+	struct group **group;
+	long ngroups;
+	long nblocks;
 } groups_s;
 
 typedef struct group {
-  char *name;
-  char **wc;
-  long nwcs;
-  long nblocks;
+	char *name;
+	char **wc;
+	long nwcs;
+	long nblocks;
 } group_s;
 
 /* group.c */
