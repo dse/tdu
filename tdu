@@ -75,6 +75,7 @@ sub add_node {
 		push(@nodes, "/");
 	}
 	push(@nodes, grep { $_ ne "" } split(qr{ /+ }xo, $pathname));
+	my $child_pathname = join($;, @nodes);
 	my $final = pop(@nodes);
 	#----------------------------------------------------------------------
 	# for "foo/bar/baz":  $final becomes "baz"
@@ -82,9 +83,11 @@ sub add_node {
 	# for "/foo/bar/baz": $final becomes "baz"
 	#                     and @nodes becomes ("/", "foo", "bar")
 
-	my $shortcut = join($;, @nodes);
-	if (exists($self->{children_by_name}->{$shortcut})) {
-		$child = $self->{children_by_name}->{$shortcut};
+	# incase this node's parent node will contain a large number of
+	# children, we want to access them quickly.
+	my $parent_pathname = join($;, @nodes);
+	if (exists($self->{children_by_name}->{$parent_pathname})) {
+		$child = $self->{children_by_name}->{$parent_pathname};
 	}
 	else {
 		foreach my $name (@nodes) {
@@ -95,7 +98,7 @@ sub add_node {
 			}
 			$child = $new;
 		}
-		$self->{children_by_name}->{$shortcut} = $child;
+		$self->{children_by_name}->{$parent_pathname} = $child;
 	}
 
 	$new = $child->{children_by_name}->{$final};
@@ -114,6 +117,11 @@ sub add_node {
 	else {
 		$child->{size} = $size;
 	}
+
+	# makes assumption on du output order
+	delete $self->{children_by_name}->{$child_pathname};
+	delete $child->{children_by_name};
+
 	return $child;
 }
 
@@ -141,6 +149,16 @@ sub fix_tree_descendents {
 	}
 	$self->{descendents} = $descendents;
 	return $descendents;
+}
+
+sub cleanup {
+	my ($self) = @_;
+	if ($self->{children_by_name}) {
+		foreach my $child (@{$self->{children}}) {
+			$child->cleanup();
+		}
+		delete $self->{children_by_name};
+	}
 }
 
 # example: my $nnodes = $selected_node->expand();
@@ -282,7 +300,10 @@ sub parse_line {
 	my ($self, $line) = @_;
 	chomp($line);
 	return unless $line =~ /^\s*(\d+)\s*(.*)$/;
-	$self->add_node($2, $1);
+	my $node = $self->add_node($2, $1);
+
+	# makes assumption on du output order
+	delete $node->{children_by_name};
 }
 
 # Finalize the tree structure once all input is parsed.
@@ -290,6 +311,7 @@ sub parse_eof {
 	my ($self) = @_;
 	$self->fix_tree_sizes();
 	$self->fix_tree_descendents();
+	$self->cleanup();
 }
 
 # Methods passed to tree_sort().
