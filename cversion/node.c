@@ -127,6 +127,7 @@ add_node (node_s *root,		/* root node to which pathname is relative */
 	
 	char *pathname_copy;
 	char *name;
+	char *nextname;
 	node_s *node;
 
 	node = root;
@@ -134,8 +135,17 @@ add_node (node_s *root,		/* root node to which pathname is relative */
 	pathname_copy = strdup(pathname);
 	name = strtok(pathname_copy, "/");
 	while (name) {
+		nextname = strtok(NULL, "/");
+		if (!nextname && groups) {
+			group_s *group = find_matching_group(groups, name);
+			if (group) {
+				node = find_or_create_child(node, group->name);
+				if (node->size < 0) node->size = 0;
+				node->size += size;
+			}
+		}
 		node = find_or_create_child(node, name);
-		name = strtok(NULL, "/");
+		name = nextname;
 	}
 	node->size = size;
 
