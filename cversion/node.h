@@ -68,7 +68,7 @@ void initialize_node(node_s *node);
 node_s *new_node(const char *name);
 void add_kid(node_s *parent, node_s *kid);
 node_s *find_or_create_child(node_s *node, const char *name);
-void add_node(node_s *node, const char *pathname, long size, groups_s *groups);
+void add_node(node_s *root, const char *pathname, long size, groups_s *groups);
 long fix_tree_sizes(node_s *node);
 long fix_tree_descendents(node_s *node);
 void dump_tree(node_s *node, int level);

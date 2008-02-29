@@ -118,95 +118,26 @@ find_or_create_child(node_s *node, const char *name)
 
 /* link a pathname into the tree and set the destination node's size */
 void
-add_node (node_s *node,		/* root node to which pathname is relative */
+add_node (node_s *root,		/* root node to which pathname is relative */
 	  const char *pathname,	/* path relative to node */
 	  long size,		/* set destination node's size to this */
 	  groups_s *groups)
 {
-	int i;
-	const char *p = pathname;
-	char name[PATH_MAX]; /* will contain first element of pathname */
-	node_s *child;
+	if (!root || !pathname) return;
+	
+	char *pathname_copy;
+	char *name;
+	node_s *node;
 
-	if (!node || !pathname)
-		return;
+	node = root;
 
-	while (1) {
-
-		/* each iteration in this loop begins by copying the
-		   next element (sequence of non-slash characters) of
-		   pathname to name.  If the pathname is absolute
-		   (i.e., begins with a slash), then name includes a
-		   leading slash. */
-
-		i = 0;
-
-		if (*p == '/') {
-			/* leading "/"?  use "/" as the first node. */
-			name[i++] = *(p++);
-			name[i] = '\0';
-			while (*p == '/') ++p;
-		} else {
-			while (*p && *p != '/')
-				name[i++] = *(p++);
-			name[i] = '\0';
-			while (*p == '/') ++p;	/* skip slashes; go to
-						   next pathname
-						   element */
-		}
-
-		/* *after* the previous iteration of this loop
-		   processes the last pathname element, name is empty
-		   and we're at the destination node; update its
-		   contents. */
-
-		if (!i) {
-			if (node->size >= 0 && node->size != size) {
-				fprintf(stderr,
-					"WARNING!! conflicting entry for %s\n",
-					pathname);
-			}
-			else {
-				node->size = size;
-				node->isdupath = 1;
-			}
-			break;
-		}
-
-		/* if we reach this point we have a path element in
-		   name.  p points to a relative path consisting of
-		   the rest of the elements.  find or create a child
-		   with name as its name and go to that child using
-		   the rest of the pathname (p). */
-
-		/* If name is the last path element we assume a file.
-		   If filename matches one of the groups, find or
-		   create a child with the group's name and put the
-		   file under it.*/
-
-		if (!*p) {
-			group_s *group = 
-				find_matching_group(groups,name);
-			if (group) {
-				node = find_or_create_child(node,group->name);
-				if (node->size < 0) node->size = 0;
-				node->size += size;
-			}
-		}
-
-		/* find or create a child that matches this pathname
-		   element */
-		child = find_or_create_child(node,name);
-
-		/* descend to the next pathname element to reach the
-		   destination */
-		node = child;
+	pathname_copy = strdup(pathname);
+	name = strtok(pathname_copy, "/");
+	while (name) {
+		node = find_or_create_child(node, name);
+		name = strtok(NULL, "/");
 	}
-
-	if (child->kids_by_name) {
-		g_hash_table_destroy(child->kids_by_name);
-		child->kids_by_name = NULL;
-	}
+	node->size = size;
 }
 
 /* compute sizes of nodes in a tree whose sizes aren't initialized */
