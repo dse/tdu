@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curses.h>
+#include <glib.h>
 
 /* as nodes are created this is used to initialize their structures */
 void
@@ -45,6 +46,7 @@ initialize_node (node_s *node)
 	node->isdupath = 0;
 	node->islastkid = 1;
 	node->origindex = -1;
+	node->kids_by_name = NULL;
 }
 
 /* Create a new node and initialize its contents. */
@@ -63,7 +65,11 @@ add_kid (node_s *parent,
 	 node_s *kid)
 {
 	if (parent && kid) {
-    
+
+		if (!parent->kids_by_name)
+			parent->kids_by_name = 
+				g_hash_table_new(g_str_hash, g_str_equal);
+		
 		/* if necessary, (re)allocate a bigger block of children */
 		if (parent->nkids >= parent->nkidblocks * KIDSATATIME) {
 			parent->kids = (node_s **)realloc(parent->kids,
@@ -80,6 +86,8 @@ add_kid (node_s *parent,
 		kid->origindex = parent->nkids;
 		parent->kids[parent->nkids++] = kid;
 		kid->parent = parent;
+
+		g_hash_table_insert(parent->kids_by_name, kid->name, kid);
 	}
 }
 
@@ -91,10 +99,12 @@ find_or_create_child(node_s *node, const char *name)
 {
 	if (node && name) {
 		node_s *child;
-		long i;
-		for (i = 0; i < node->nkids; ++i) {
-			if (!strcmp(node->kids[i]->name,name))
-				return node->kids[i];
+		gpointer found;
+		if (node->kids_by_name) {
+			found = g_hash_table_lookup(node->kids_by_name, name);
+			if (found) {
+				return (node_s *)found;
+			}
 		}
 		if ((child = new_node(name)) != NULL) {
 			add_kid(node,child);
@@ -187,6 +197,11 @@ add_node (node_s *node,		/* root node to which pathname is relative */
 			/* descend to the next pathname element to reach the
 			   destination */
 			node = child;
+		}
+
+		if (child->kids_by_name) {
+			g_hash_table_destroy(child->kids_by_name);
+			child->kids_by_name = null;
 		}
 	}
 }

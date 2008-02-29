@@ -26,11 +26,14 @@
 #include "tdu.h"
 #include <curses.h>
 
+#include <glib.h>
+
 /* Each pathname element has associated with it a node in a tree. */
 typedef struct node {
 	char *name;
 	long size;
 	struct node **kids;
+	GHashTable *kids_by_name;
 	long nkids;		/* this node has many direct children */
 	long nkidblocks;	/* allocated in this many "blocks" */
 	struct node *parent;
