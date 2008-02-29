@@ -38,7 +38,7 @@ static char *tree_chars_string[] = {
 	"|  "                         /* PARENT_NOTLAST == 3 */
 };
 
-int USE_ARROW_CURSOR = 1;
+int USE_ARROW_CURSOR = 0;
 int THREE_ACS_CHARS = 1;
 int USE_ACS_CHARS = 1;
 
