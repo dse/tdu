@@ -165,11 +165,12 @@ add_node (node_s *node,		/* root node to which pathname is relative */
 				fprintf(stderr,
 					"WARNING!! conflicting entry for %s\n",
 					pathname);
-			} else {
+			}
+			else {
 				node->size = size;
 				node->isdupath = 1;
 			}
-			return;
+			break;
 		}
 
 		/* if we reach this point we have a path element in
