@@ -138,6 +138,11 @@ add_node (node_s *root,		/* root node to which pathname is relative */
 		name = strtok(NULL, "/");
 	}
 	node->size = size;
+
+        if (node->kids_by_name) {
+                g_hash_table_destroy(node->kids_by_name);
+                node->kids_by_name = NULL;
+        }
 }
 
 /* compute sizes of nodes in a tree whose sizes aren't initialized */
