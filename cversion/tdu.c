@@ -28,7 +28,7 @@
 #include "group.h"
 #include "tduint.h"
 
-static char *optstring = "hG:I:AV";
+static char *optstring = "hG:I:AVP";
 static char *progname = "tdu";
 
 void
@@ -66,6 +66,7 @@ typedef struct options {
 	bool help;
 	int optind;
 	groups_s *groups;
+	bool parse_only;
 } options_s;
 
 options_s *
@@ -78,7 +79,9 @@ get_options (int argc, char **argv)
 
 	options = (options_s *)malloc(sizeof(options_s));
 	if (options == NULL) return NULL;
-	options->help = 1; options->optind = -1;
+	options->help = 1;
+	options->optind = -1;
+	options->parse_only = 0;
 
 	while ((c = getopt(argc,argv,optstring)) != -1) {
 		switch (c) {
@@ -105,6 +108,9 @@ get_options (int argc, char **argv)
 			break;
 		case 'V':
 			version_exit(0);
+			break;
+		case 'P':
+			options->parse_only = 1;
 			break;
 		default:
 			usage_exit(1);
@@ -135,6 +141,10 @@ main (int argc, char **argv)
 	}
 
 	node = parse_file(*argv,groups);
+
+	if (options->parse_only) {
+		return 0;
+	}
 
 	if (node) {
 		expand_tree(node,1);
