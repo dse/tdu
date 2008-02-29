@@ -38,7 +38,6 @@ static char *tree_chars_string[] = {
 	"|  "                         /* PARENT_NOTLAST == 3 */
 };
 
-int USE_ARROW_CURSOR = 0;
 int THREE_ACS_CHARS = 1;
 int USE_ACS_CHARS = 1;
 
@@ -201,35 +200,17 @@ display_s tdu_interface_ds = {
 	tdu_interface_display_tree_chars /* fpt */
 };
 
-static int tdu_cursor = 0;      /* is cursor "visible"? */
-
 void
 tdu_hide_cursor ()
 {
-	if (USE_ARROW_CURSOR) {
-		curs_set(0);
-		if (tdu_cursor) {
-			tdu_cursor = 0;
-			wmove(tduwin,intcursor - intstart, CURSORX);
-			wprintw_custom(tduwin,"  ");
-		}
-	} else {
-		curs_set(0);
-	}
+	curs_set(0);
 }
 
 void
 tdu_show_cursor ()
 {
-	if (USE_ARROW_CURSOR) {
-		curs_set(0);
-		tdu_cursor = 1;
-		wmove(tduwin,intcursor - intstart, 0);
-		wprintw_custom(tduwin,"=>");
-	} else {
-		wmove(tduwin,intcursor - intstart, CURSORX);
-		curs_set(1);
-	}
+	wmove(tduwin,intcursor - intstart, CURSORX);
+	curs_set(1);
 }
 
 /* tdu interface function to display a specific node (and its "tree
@@ -245,12 +226,7 @@ tdu_interface_display_node (int line, /* screen line # */
 	wclrtoeol(tduwin);
 
 	if (node) {
-		if (USE_ARROW_CURSOR) {
-			/* room for arrow cursor */
-			wprintw_custom(tduwin,"  %11ld ",node->size);
-		} else {
-			wprintw_custom(tduwin,"%11ld ",node->size);
-		}
+		wprintw_custom(tduwin,"%11ld ",node->size);
 		display_tree_chars(node,level,1,tdu_interface_ds);
 		wprintw_custom(tduwin,"%s",node->name);
 		if(node->nkids && !node->expanded) {
