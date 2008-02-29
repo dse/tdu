@@ -64,31 +64,31 @@ void
 add_kid (node_s *parent,
 	 node_s *kid)
 {
-	if (parent && kid) {
+	if (!parent || !kid)
+		return;
 
-		if (!parent->kids_by_name)
-			parent->kids_by_name = 
-				g_hash_table_new(g_str_hash, g_str_equal);
-		
-		/* if necessary, (re)allocate a bigger block of children */
-		if (parent->nkids >= parent->nkidblocks * KIDSATATIME) {
-			parent->kids = (node_s **)realloc(parent->kids,
-							  ++parent->nkidblocks
-							  * KIDSATATIME
-							  * sizeof(node_s *));
-		}
-
-		/* any former last kid is not a last kid anymore */
-		if (parent->nkids) 
-			parent->kids[parent->nkids - 1]->islastkid = 0;
-
-		kid->islastkid = 1;
-		kid->origindex = parent->nkids;
-		parent->kids[parent->nkids++] = kid;
-		kid->parent = parent;
-
-		g_hash_table_insert(parent->kids_by_name, kid->name, kid);
+	if (!parent->kids_by_name)
+		parent->kids_by_name = 
+			g_hash_table_new(g_str_hash, g_str_equal);
+	
+	/* if necessary, (re)allocate a bigger block of children */
+	if (parent->nkids >= parent->nkidblocks * KIDSATATIME) {
+		parent->kids = (node_s **)realloc(parent->kids,
+						  ++parent->nkidblocks
+						  * KIDSATATIME
+						  * sizeof(node_s *));
 	}
+	
+	/* any former last kid is not a last kid anymore */
+	if (parent->nkids) 
+		parent->kids[parent->nkids - 1]->islastkid = 0;
+	
+	kid->islastkid = 1;
+	kid->origindex = parent->nkids;
+	parent->kids[parent->nkids++] = kid;
+	kid->parent = parent;
+	
+	g_hash_table_insert(parent->kids_by_name, kid->name, kid);
 }
 
 /* Either find an existing child whose name is the name argument, or
@@ -97,19 +97,21 @@ add_kid (node_s *parent,
 node_s *
 find_or_create_child(node_s *node, const char *name)
 {
-	if (node && name) {
-		node_s *child;
-		gpointer found;
-		if (node->kids_by_name) {
-			found = g_hash_table_lookup(node->kids_by_name, name);
-			if (found) {
-				return (node_s *)found;
-			}
+	node_s *child;
+	gpointer found;
+
+	if (!node || !name)
+		return NULL;
+
+	if (node->kids_by_name) {
+		found = g_hash_table_lookup(node->kids_by_name, name);
+		if (found) {
+			return (node_s *)found;
 		}
-		if ((child = new_node(name)) != NULL) {
-			add_kid(node,child);
-			return child;
-		}
+	}
+	if ((child = new_node(name)) != NULL) {
+		add_kid(node,child);
+		return child;
 	}
 	return NULL;
 }
@@ -121,88 +123,88 @@ add_node (node_s *node,		/* root node to which pathname is relative */
 	  long size,		/* set destination node's size to this */
 	  groups_s *groups)
 {
-	if (node && pathname) {
+	int i;
+	const char *p = pathname;
+	char name[PATH_MAX]; /* will contain first element of pathname */
+	node_s *child;
 
-		int i;
-		const char *p = pathname;
-		char name[PATH_MAX]; /* will contain first element of pathname */
-		node_s *child;
+	if (!node || !pathname)
+		return;
 
-		while (1) {
+	while (1) {
 
-			/* each iteration in this loop begins by copying the
-			   next element (sequence of non-slash characters) of
-			   pathname to name.  If the pathname is absolute
-			   (i.e., begins with a slash), then name includes a
-			   leading slash. */
-      
-			i = 0;
+		/* each iteration in this loop begins by copying the
+		   next element (sequence of non-slash characters) of
+		   pathname to name.  If the pathname is absolute
+		   (i.e., begins with a slash), then name includes a
+		   leading slash. */
 
-			if (*p == '/') {
-				/* leading "/"?  use "/" as the first node. */
+		i = 0;
+
+		if (*p == '/') {
+			/* leading "/"?  use "/" as the first node. */
+			name[i++] = *(p++);
+			name[i] = '\0';
+			while (*p == '/') ++p;
+		} else {
+			while (*p && *p != '/')
 				name[i++] = *(p++);
-				name[i] = '\0';
-				while (*p == '/') ++p;
+			name[i] = '\0';
+			while (*p == '/') ++p;	/* skip slashes; go to
+						   next pathname
+						   element */
+		}
+
+		/* *after* the previous iteration of this loop
+		   processes the last pathname element, name is empty
+		   and we're at the destination node; update its
+		   contents. */
+
+		if (!i) {
+			if (node->size >= 0 && node->size != size) {
+				fprintf(stderr,
+					"WARNING!! conflicting entry for %s\n",
+					pathname);
 			} else {
-				while (*p && *p != '/')
-					name[i++] = *(p++);
-				name[i] = '\0';
-				while (*p == '/') ++p;	/* skip slashes; go to
-							   next pathname
-							   element */
+				node->size = size;
+				node->isdupath = 1;
 			}
-
-			/* *after* the previous iteration of this loop
-			   processes the last pathname element, name is empty
-			   and we're at the destination node; update its
-			   contents. */
-      
-			if (!i) {
-				if (node->size >= 0 && node->size != size) {
-					fprintf(stderr,
-						"WARNING!! conflicting entry for %s\n",
-						pathname);
-				} else {
-					node->size = size;
-					node->isdupath = 1;
-				}
-				return;
-			}
-
-			/* if we reach this point we have a path element in
-			   name.  p points to a relative path consisting of
-			   the rest of the elements.  find or create a child
-			   with name as its name and go to that child using
-			   the rest of the pathname (p). */
-
-			/* If name is the last path element we assume a file.
-			   If filename matches one of the groups, find or
-			   create a child with the group's name and put the
-			   file under it.*/
-
-			if (!*p) {
-				group_s *group = 
-					find_matching_group(groups,name);
-				if (group) {
-					node = find_or_create_child(node,group->name);
-					if (node->size < 0) node->size = 0;
-					node->size += size;
-				}
-			}
-
-			/* find or create a child that matches this pathname
-			   element */
-			child = find_or_create_child(node,name);
-
-			/* descend to the next pathname element to reach the
-			   destination */
-			node = child;
+			return;
 		}
 
-		if (child->kids_by_name) {
-			g_hash_table_destroy(child->kids_by_name);
-			child->kids_by_name = null;
+		/* if we reach this point we have a path element in
+		   name.  p points to a relative path consisting of
+		   the rest of the elements.  find or create a child
+		   with name as its name and go to that child using
+		   the rest of the pathname (p). */
+
+		/* If name is the last path element we assume a file.
+		   If filename matches one of the groups, find or
+		   create a child with the group's name and put the
+		   file under it.*/
+
+		if (!*p) {
+			group_s *group = 
+				find_matching_group(groups,name);
+			if (group) {
+				node = find_or_create_child(node,group->name);
+				if (node->size < 0) node->size = 0;
+				node->size += size;
+			}
 		}
+
+		/* find or create a child that matches this pathname
+		   element */
+		child = find_or_create_child(node,name);
+
+		/* descend to the next pathname element to reach the
+		   destination */
+		node = child;
+	}
+
+	if (child->kids_by_name) {
+		g_hash_table_destroy(child->kids_by_name);
+		child->kids_by_name = NULL;
 	}
 }
 
@@ -211,24 +213,24 @@ add_node (node_s *node,		/* root node to which pathname is relative */
 long				/* returns the size of the node */
 fix_tree_sizes (node_s *node)
 {
-	if (node) {
-		long size = 0;
+	long size = 0;
 
-		/* return existing size if already computed */
-		if (node->size >= 0) return node->size;
-
-		if (node->kids && node->nkids) {
-			int i;
-
-			/* compute size as the sum of the size of each child */
-			for (i = 0; i < node->nkids; ++i) {
-				size += fix_tree_sizes(node->kids[i]);
-			}
+	if (!node)
+		return 0;
+	
+	/* return existing size if already computed */
+	if (node->size >= 0) return node->size;
+	
+	if (node->kids && node->nkids) {
+		int i;
+		
+		/* compute size as the sum of the size of each child */
+		for (i = 0; i < node->nkids; ++i) {
+			size += fix_tree_sizes(node->kids[i]);
 		}
-    
-		return node->size = size;
 	}
-	return 0;
+	
+	return node->size = size;
 }
 
 /* compute #descendents of nodes in a tree whose descendents isn't
@@ -237,44 +239,47 @@ fix_tree_sizes (node_s *node)
 long				/* returns node's #descendents */
 fix_tree_descendents (node_s *node)
 {
-	if (node) {
-		long descendents = node->nkids;
+	long descendents;
 
-		/* return existing #descendents if already computed */
-		if (node->descendents >= 0) return node->descendents;
+	if (!node)
+		return 0;
 
-		if (node->kids && node->nkids) {
-			int i;
+	descendents = node->nkids;
 
-			/* compute #descendents as this node's number of kids
-			   plus the sum of each child's #descendents */
-			for (i = 0; i < node->nkids; ++i) {
-				descendents += fix_tree_descendents(node->kids[i]);
-			}
+	/* return existing #descendents if already computed */
+	if (node->descendents >= 0) return node->descendents;
+
+	if (node->kids && node->nkids) {
+		int i;
+
+		/* compute #descendents as this node's number of kids
+		   plus the sum of each child's #descendents */
+		for (i = 0; i < node->nkids; ++i) {
+			descendents += fix_tree_descendents(node->kids[i]);
 		}
-		return node->descendents = descendents;
 	}
-	return 0;
+	return node->descendents = descendents;
 }
 
 /* === THIS IS A RECURSIVE FUNCTION. === */
 void
 dump_tree (node_s *node, int level)
 {
-	if (node) {
-		int i;
-		printf("%10ld %5lda %5lde %c ",node->size,
-		       node->descendents,
-		       node->expanded,
-		       node->isdupath?'*':' ');
-		if (level)
-			for (i = 0; i < level; ++i) 
-				fputs("  ",stdout);
-		printf("%s\n",node->name);
-		if (node->kids && node->nkids) {
-			for(i = 0; i < node->nkids; ++i) {
-				dump_tree(node->kids[i],level+1);
-			}
+	if (!node)
+		return;
+
+	int i;
+	printf("%10ld %5lda %5lde %c ",node->size,
+	       node->descendents,
+	       node->expanded,
+	       node->isdupath?'*':' ');
+	if (level)
+		for (i = 0; i < level; ++i) 
+			fputs("  ",stdout);
+	printf("%s\n",node->name);
+	if (node->kids && node->nkids) {
+		for(i = 0; i < node->nkids; ++i) {
+			dump_tree(node->kids[i],level+1);
 		}
 	}
 }
@@ -305,22 +310,24 @@ long				/* returns #descendents MADE visible */
 expand_tree_ (node_s *node,	/* tree to expand */
 	      int level)	/* #levels deep, or -1 to expand fully */
 {
-	long ret = 0; long expanded; int i;
+	long ret = 0;
+	long expanded;
+	int i;
 
-	if (node && node->nkids && node->kids && level) {
+	if (!node || !node->nkids || !node->kids || !level)
+		return 0;
 
-		/* if collapsed, expand this level */
-		if (!node->expanded) ret += (node->expanded = node->nkids);
+	/* if collapsed, expand this level */
+	if (!node->expanded) ret += (node->expanded = node->nkids);
 
-		/* if any levels left, recursively call self on each of the
-		   kids */    
-		if (level > 0) level -= 1;	/* how many levels left? */
-		if (level) {
-			for (i = 0; i < node->nkids; ++i) {
-				expanded = expand_tree_(node->kids[i],level);
-				ret += expanded;
-				node->expanded += expanded;
-			}
+	/* if any levels left, recursively call self on each of the
+	   kids */    
+	if (level > 0) level -= 1;	/* how many levels left? */
+	if (level) {
+		for (i = 0; i < node->nkids; ++i) {
+			expanded = expand_tree_(node->kids[i],level);
+			ret += expanded;
+			node->expanded += expanded;
 		}
 	}
 	return ret;
@@ -330,21 +337,24 @@ expand_tree_ (node_s *node,	/* tree to expand */
 long				/* returns number of nodes MADE invisible */
 collapse_tree (node_s *node)	/* ptr to tree to collapse */
 {
-	if (node) {
-		node_s *p; long collapsed = node->expanded;
+	node_s *p;
+	long collapsed;
     
-		/* First we decrement each ancestor's expand values by the
-		   number of descendents we will make invisible.  For
-		   performance reasons this is not done recursively. */
-		if (collapsed) {
-			for (p = node->parent; p; p = p->parent)
-				p->expanded -= node->expanded;
-			collapse_tree_(node);
-		}
-    
-		return collapsed;
+	if (!node)
+		return 0;
+
+	collapsed = node->expanded;
+
+	/* First we decrement each ancestor's expand values by the
+	   number of descendents we will make invisible.  For
+	   performance reasons this is not done recursively. */
+	if (collapsed) {
+		for (p = node->parent; p; p = p->parent)
+			p->expanded -= node->expanded;
+		collapse_tree_(node);
 	}
-	return 0;
+	
+	return collapsed;
 }
 
 /* Does the dirty work for collapse_tree(). */
