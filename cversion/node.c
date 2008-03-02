@@ -21,7 +21,6 @@
 
 #include "tdu.h"
 #include "node.h"
-#include "group.h"
 #include <errno.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -120,14 +119,12 @@ find_or_create_child(node_s *node, const char *name)
 void
 add_node (node_s *root,		/* root node to which pathname is relative */
 	  const char *pathname,	/* path relative to node */
-	  long size,		/* set destination node's size to this */
-	  groups_s *groups)
+	  long size)		/* set destination node's size to this */
 {
 	if (!root || !pathname) return;
 	
 	char *pathname_copy;
 	char *name;
-	char *nextname;
 	node_s *node;
 
 	node = root;
@@ -135,17 +132,8 @@ add_node (node_s *root,		/* root node to which pathname is relative */
 	pathname_copy = strdup(pathname);
 	name = strtok(pathname_copy, "/");
 	while (name) {
-		nextname = strtok(NULL, "/");
-		if (!nextname && groups) {
-			group_s *group = find_matching_group(groups, name);
-			if (group) {
-				node = find_or_create_child(node, group->name);
-				if (node->size < 0) node->size = 0;
-				node->size += size;
-			}
-		}
 		node = find_or_create_child(node, name);
-		name = nextname;
+		name = strtok(NULL, "/");
 	}
 	node->size = size;
 
@@ -451,9 +439,8 @@ tree_sort (node_s *node,	/* node whose children to sort */
    similar to that of du) for blocksize and pathname, and add each
    pathname and size to the tree. */
 
-node_s *			/* returns pointer to root of tree */
-parse_file (const char *pathname, /* filename, or "-" or NULL for stdin */
-	    groups_s *groups)
+node_s *			  /* returns pointer to root of tree */
+parse_file (const char *pathname) /* filename, or "-" or NULL for stdin */
 {
 	node_s *node;
 	FILE *in;
@@ -479,7 +466,7 @@ parse_file (const char *pathname, /* filename, or "-" or NULL for stdin */
 
 	while (fgets(line,sizeof(line),in)) {
 		sscanf(line,"%ld %[^\n]\n",&size,path);
-		add_node(node,path,size,groups);
+		add_node(node,path,size);
 		/* display progress */
 		++entries;
 		if (show_progress && !(entries % 100))

@@ -25,7 +25,6 @@
 
 #include "tdu.h"
 #include "node.h"
-#include "group.h"
 #include "tduint.h"
 
 static char *optstring = "hG:I:AVP";
@@ -50,12 +49,9 @@ void
 usage_exit (int status)
 {
 	fprintf(stderr,
-		"usage: %s [-h] [-A] [-V] [-G<groupname> -I<pattern> ...] [<file>]\n"
-		"       du [<arg> ...] | %s [-h] [-A] [-G<groupname> -I<pattern> ...]\n"
-		"options: -G<groupname>   specify group of files to collect\n"
-		"         -I<pattern>     specify filename patterns to include in\n"
-		"                         most recently specified group\n"
-		"         -h              display this message\n"
+		"usage: %s [-h] [-A] [-V] [<file> ...]\n"
+		"       du [<arg> ...] | %s [-h] [-A]\n"
+		"options: -h              display this message\n"
 		"         -A              use ascii chars\n"
 		"         -V              show version, license terms\n"
 		,progname,progname);
@@ -65,7 +61,6 @@ usage_exit (int status)
 typedef struct options {
 	bool help;
 	int optind;
-	groups_s *groups;
 	bool parse_only;
 } options_s;
 
@@ -73,8 +68,6 @@ options_s *
 get_options (int argc, char **argv)
 {
 	options_s *options;
-	groups_s *groups = NULL;
-	group_s *group = NULL;
 	int c;
 
 	options = (options_s *)malloc(sizeof(options_s));
@@ -86,20 +79,15 @@ get_options (int argc, char **argv)
 	while ((c = getopt(argc,argv,optstring)) != -1) {
 		switch (c) {
 		case 'G':
-			if (groups == NULL)
-				groups = new_groups();
-			if (groups)
-				group = find_or_create_group(groups,optarg);
-			break;
+			fprintf(stderr,
+				"-G option is no longer implemented in tdu.\n"
+				"Please use dugroup, a separate program.\n");
+			exit(1);
 		case 'I':
-			if (group == NULL) {
-				fprintf(stderr,
-					"'-I' option requires '-A' option to be previously"
-					" specified.\n");
-				usage_exit(1);
-			}
-			add_wc(group,optarg);
-			break;
+			fprintf(stderr,
+				"-I option is no longer implemented in tdu.\n"
+				"Please use dugroup, a separate program.\n");
+			exit(1);
 		case 'A':
 			USE_ACS_CHARS = 0;
 			break;
@@ -118,7 +106,6 @@ get_options (int argc, char **argv)
 		}
 	}
 
-	options->groups = groups;
 	options->optind = optind;
 	return options;
 }
@@ -130,17 +117,15 @@ main (int argc, char **argv)
 {
 	node_s *node;
 	options_s *options;
-	groups_s *groups;
 
 	if (NULL == (options = get_options(argc,argv))) {
 		--argc,++argv;
 	} else {
 		argc -= options->optind;
 		argv += options->optind;
-		groups = options->groups;
 	}
 
-	node = parse_file(*argv,groups);
+	node = parse_file(*argv);
 
 	if (options->parse_only) {
 		return 0;

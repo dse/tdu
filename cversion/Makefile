@@ -17,7 +17,7 @@
 
 all: tdu
 
-SRCS = tdu.c group.c node.c tduint.c nowrap.c
+SRCS = tdu.c node.c tduint.c nowrap.c
 HDRS = tduproto.h
 PROG = tdu
 OBJS = $(SRCS:.c=.o)

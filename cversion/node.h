@@ -62,13 +62,12 @@ typedef struct node {
 /* Type of function used to qsort the children of a tree node */
 typedef int (*node_sort_fp)(const node_s *,const node_s *);
 
-#include "group.h"
 
 void initialize_node(node_s *node);
 node_s *new_node(const char *name);
 void add_kid(node_s *parent, node_s *kid);
 node_s *find_or_create_child(node_s *node, const char *name);
-void add_node(node_s *root, const char *pathname, long size, groups_s *groups);
+void add_node(node_s *root, const char *pathname, long size);
 long fix_tree_sizes(node_s *node);
 long fix_tree_descendents(node_s *node);
 void dump_tree(node_s *node, int level);
@@ -83,7 +82,7 @@ int node_cmp_unsort(const node_s *a, const node_s *b);
 int node_cmp_name(const node_s *a, const node_s *b);
 int node_qsort_cmp(const void *aa, const void *bb);
 void tree_sort(node_s *node, node_sort_fp fp, bool reverse, bool isrecursive);
-node_s *parse_file(const char *pathname, groups_s *groups);
+node_s *parse_file(const char *pathname);
 
 /*****************************************************************************/
 #endif /* NODE_H */
