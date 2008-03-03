@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #include "tdu.h"
 #include "node.h"
@@ -29,6 +30,15 @@
 
 static char *optstring = "hG:I:AVP";
 static char *progname = "tdu";
+
+struct option long_options[] = {
+	{ "help",       0, NULL, 'h' },
+	{ "ascii-tree", 0, NULL, 'A' },
+	{ "parse-only", 0, NULL, 'P' },
+	{ "version",    0, NULL, 'V' },
+	{ "debug",      0, NULL, 'd' },
+	{ NULL,         0, NULL, 0 }
+};
 
 void
 version_exit (int status)
@@ -49,12 +59,11 @@ void
 usage_exit (int status)
 {
 	fprintf(stderr,
-		"usage: %s [-h] [-A] [-V] [<file> ...]\n"
-		"       du [<arg> ...] | %s [-h] [-A]\n"
-		"options: -h              display this message\n"
-		"         -A              use ascii chars\n"
-		"         -V              show version, license terms\n"
-		,progname,progname);
+		"usage: [ du [OPTION ...] [FILE ...] | ] %s [OPTION ...] [FILE ...]\n"
+		"  -h, --help        display this message\n"
+		"  -A, --ascii-tree  display tree branches using ASCII characters\n"
+		"  -V, --version     show version, license terms\n"
+		, progname);
 	exit(status);
 }
 
@@ -76,7 +85,8 @@ get_options (int argc, char **argv)
 	options->optind = -1;
 	options->parse_only = 0;
 
-	while ((c = getopt(argc,argv,optstring)) != -1) {
+	while ((c = getopt_long(argc, argv, optstring,
+				long_options, NULL)) != -1) {
 		switch (c) {
 		case 'G':
 			fprintf(stderr,
