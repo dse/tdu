@@ -1,3 +1,2 @@
 - Port all features/fixes/whatnot from the perl program.
-- Remove the group feature; it's in a separate program now.
 - use GNU getopt for long option goodness.
