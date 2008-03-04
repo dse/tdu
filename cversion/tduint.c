@@ -461,7 +461,7 @@ tdu_interface_get_screen_size(int *lines, int *columns)
 		fprintf(stderr, "oh crap, no tty!\n");
 		exit(1);
 	}
-	if (!ioctl(fileno(tty), TIOCGWINSZ, &ws)) {
+	if (ioctl(fileno(tty), TIOCGWINSZ, &ws)) {
 		endwin();
 		fprintf(stderr, "TIOCGWINSZ failed\n");
 		exit(1);
