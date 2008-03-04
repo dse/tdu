@@ -990,15 +990,12 @@ sub keypress {
 	    or $key eq chr(3)
 	    or $key eq chr(27)) {
 		$self->finish(0);
-		last;
 	}
 	elsif ($key eq "?") {
 		$self->help($ONLINE_HELP);
-		next;
 	}
 	elsif ($key eq "C" or $key eq "c") {
 		$self->help($main::COPYRIGHT_INFO);
-		next;
 	}
 	elsif ($key eq "k" or $key eq "K" or $key eq chr(16)
 	       or $key eq Curses::KEY_PREVIOUS
