@@ -1,1 +1,5 @@
 - Port all features/fixes/whatnot from the perl program.
+
+- bug fix:
+	if an xterm is resized twice, the next key pressed triggers a beep.
+
