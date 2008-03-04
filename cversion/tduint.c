@@ -450,42 +450,6 @@ tdu_interface_sort (node_sort_fp fp,bool reverse,bool isrecursive)
 }
 
 void
-tdu_interface_compute_visible_lines ()
-{
-	int bx,by,ex,ey;
-	getbegyx(main_window, by, bx);
-	getmaxyx(main_window, ey, ex);
-	visible_lines = ey - by;
-}
-
-void
-tdu_interface_init_ncurses ()
-{
-	freopen("/dev/tty", "r", stdin);
-  
-	tdu_window = initscr();
-	keypad(tdu_window, TRUE);
-	nonl();
-	cbreak();
-	noecho();
-	scrollok(tdu_window, 1);
-
-	main_window = newwin(LINES - 1, COLS, 0, 0);
-	status_window = newwin(1, COLS, LINES - 1, 0);
-
-	keypad(main_window, TRUE);
-	scrollok(main_window, 1);
-	
-	tdu_interface_compute_visible_lines();
-
-	prev_start_line = -1;
-	start_line = 0;
-	cursor_line = 0;
-
-	tdu_interface_display();
-}
-
-void
 tdu_interface_get_screen_size(int *lines, int *columns)
 {
 	FILE *tty;
@@ -503,6 +467,15 @@ tdu_interface_get_screen_size(int *lines, int *columns)
 
 	*lines = ws.ws_row;
 	*columns = ws.ws_col;
+}
+
+void
+tdu_interface_compute_visible_lines ()
+{
+	int bx,by,ex,ey;
+	getbegyx(main_window, by, bx);
+	getmaxyx(main_window, ey, ex);
+	visible_lines = ey - by;
 }
 
 void
@@ -545,6 +518,33 @@ tdu_interface_resize_handler (int sig)
 		start_line = cursor_line - (visible_lines - 1);
 	}
 	
+	tdu_interface_display();
+}
+
+void
+tdu_interface_init_ncurses ()
+{
+	freopen("/dev/tty", "r", stdin);
+  
+	tdu_window = initscr();
+	keypad(tdu_window, TRUE);
+	nonl();
+	cbreak();
+	noecho();
+	scrollok(tdu_window, 1);
+
+	main_window = newwin(LINES - 1, COLS, 0, 0);
+	status_window = newwin(1, COLS, LINES - 1, 0);
+
+	keypad(main_window, TRUE);
+	scrollok(main_window, 1);
+	
+	tdu_interface_compute_visible_lines();
+
+	prev_start_line = -1;
+	start_line = 0;
+	cursor_line = 0;
+
 	tdu_interface_display();
 }
 
