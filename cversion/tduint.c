@@ -429,6 +429,20 @@ tdu_interface_page_down ()
 }
 
 void
+status_line_message (char *message)
+{
+	tdu_hide_cursor();
+	wmove(status_window, 0, 0);
+	wclrtoeol(status_window);
+	if (message && *message) {
+		wattron(status_window, A_REVERSE);
+		wprintw_nowrap(status_window, "%s", message);
+		wattroff(status_window, A_REVERSE);
+	}
+	wrefresh(status_window);
+}
+
+void
 tdu_interface_sort (node_sort_fp fp,bool reverse,bool isrecursive)
 {
 	node_s *n = find_node_numbered(root_node,cursor_line);
@@ -437,7 +451,9 @@ tdu_interface_sort (node_sort_fp fp,bool reverse,bool isrecursive)
 		long lines = n->expanded;
 		long maxlines = visible_lines - (cursor_line - start_line) - 1;
 
+		status_line_message("sorting...");
 		tree_sort(n,fp,reverse,isrecursive);
+		status_line_message(NULL);
 
 		if (lines > maxlines) lines = maxlines;
 
@@ -728,6 +744,7 @@ void
 tdu_interface_run (node_s *node)
 {
 	int key;
+	int clear_status_line;
 
 	root_node = node;
 	if (root_node->nkids == 1) {
@@ -738,10 +755,20 @@ tdu_interface_run (node_s *node)
 	signal(SIGWINCH, tdu_interface_resize_handler);
 
 	tdu_interface_init_ncurses();
+
+	status_line_message("This is tdu.");
+	clear_status_line = 1;
+	tdu_show_cursor();
+
 	tdu_show_cursor();
 
 	while (1) {
 		key = wgetch(main_window);
+		if (clear_status_line) {
+			status_line_message(NULL);
+			tdu_show_cursor();
+			clear_status_line = 0;
+		}
 		tdu_interface_keypress(key);
 	}
 }
