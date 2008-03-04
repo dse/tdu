@@ -458,11 +458,14 @@ tdu_interface_get_screen_size(int *lines, int *columns)
 	tty = fopen("/dev/tty", "r+");
 	if (!tty) {
 		endwin();
-		fprintf(stderr, "oh crap, no tty!");
+		fprintf(stderr, "oh crap, no tty!\n");
 		exit(1);
 	}
-
-	ioctl(fileno(tty), TIOCGWINSZ, &ws);
+	if (!ioctl(fileno(tty), TIOCGWINSZ, &ws)) {
+		endwin();
+		fprintf(stderr, "TIOCGWINSZ failed\n");
+		exit(1);
+	}
 	fclose(tty);
 
 	*lines = ws.ws_row;
