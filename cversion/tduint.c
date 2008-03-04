@@ -207,6 +207,7 @@ tdu_show_cursor ()
 {
 	wmove(main_window,cursor_line - start_line, 0);
 	curs_set(1);
+	wrefresh(main_window);
 }
 
 /* tdu interface function to display a specific node (and its "tree
