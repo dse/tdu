@@ -563,6 +563,12 @@ tdu_interface_keypress (int key)
 	
 	switch (key) {
 
+	case ERR:
+		break;
+
+	case KEY_RESIZE:
+		return;		/* don't want to set lastkey here. */
+
 	case '=':
 		break;
 
