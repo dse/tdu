@@ -40,7 +40,6 @@ static char *tree_chars_string[] = {
 	"|  "                         /* PARENT_NOTLAST == 3 */
 };
 
-int THREE_ACS_CHARS = 1;
 int USE_ACS_CHARS = 1;
 
 /* Generic function to display "tree branch" characters for a node and
@@ -220,27 +219,19 @@ tdu_interface_display_tree_chars (tree_chars_enum tc)
 		switch (tc) {
 		case IAM_LAST:
 			waddch_custom(main_window,ACS_LLCORNER);
-			if (THREE_ACS_CHARS) {
-				waddch_custom(main_window,ACS_HLINE);
-			}
+			waddch_custom(main_window,ACS_HLINE);
 			break;
 		case IAM_NOTLAST:
 			waddch_custom(main_window,ACS_LTEE);
-			if (THREE_ACS_CHARS) {
-				waddch_custom(main_window,ACS_HLINE);
-			}
+			waddch_custom(main_window,ACS_HLINE);
 			break;
 		case PARENT_LAST:
 			waddch_custom(main_window,' ');
-			if (THREE_ACS_CHARS) {
-				waddch_custom(main_window,' ');
-			}
+			waddch_custom(main_window,' ');
 			break;
 		case PARENT_NOTLAST:
 			waddch_custom(main_window,ACS_VLINE);
-			if (THREE_ACS_CHARS) {
-				waddch_custom(main_window,' ');
-			}
+			waddch_custom(main_window,' ');
 			break;
 		}
 		waddch_custom(main_window,' ');

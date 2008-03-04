@@ -26,7 +26,6 @@
 #include "tdu.h"
 #include "node.h"
 
-extern int THREE_ACS_CHARS;
 extern int USE_ACS_CHARS;
 
 /* debugging purposes */
