@@ -1,2 +1,1 @@
 - Port all features/fixes/whatnot from the perl program.
-- use GNU getopt for long option goodness.
