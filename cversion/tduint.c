@@ -148,48 +148,48 @@ display_nodes_ (int line,       /* starting line number on screen */
 {
 	long ret = 0; int i; long l;
 
-	if (node && nodeline >= 0 &&
-	    nodeline < (1 + node->expanded) && lines) {
+	if (!(node && nodeline >= 0 &&
+	      nodeline < (1 + node->expanded) && lines))
+		return 0;
 
-		/* Do we start displaying the tree at this node? */
+	/* Do we start displaying the tree at this node? */
+	
+	if (nodeline == 0) {
+		display_node(line,node,level,nodeline == cursor);
+		++ret; ++line; --lines;   /* a line was displayed */
+		--cursor; /* one node closer to cursor */
+	} else {
+		/* skip parent node */
+		--nodeline; /* one node closer to start displaying */
+		--cursor;   /* one node closer to cursor */
+	}
 
-		if (nodeline == 0) {
-			display_node(line,node,level,nodeline == cursor);
-			++ret; ++line; --lines;   /* a line was displayed */
-			--cursor; /* one node closer to cursor */
-		} else {
-			/* skip parent node */
-			--nodeline; /* one node closer to start displaying */
-			--cursor;   /* one node closer to cursor */
+	if (node->expanded && node->kids && node->nkids && lines) {
+
+		/* Now traverse the children to discover which of
+		   those children nodeline refers to a node inside. */
+
+		i = 0;                    /* child number */
+		while (i < node->nkids
+		       && nodeline >= (l = 1 + node->kids[i]->expanded)) {
+			nodeline -= l;
+			cursor -= l;
+			++i;
 		}
 
-		if (node->expanded && node->kids && node->nkids && lines) {
+		/* Now that nodeline is less than the number of
+		   visible nodes, we start displaying nodes from
+		   inside node->kids[i].  We may have to display nodes
+		   from one or more of the next kids as well. */
 
-			/* Now traverse the children to discover which of
-			   those children nodeline refers to a node inside. */
-
-			i = 0;                    /* child number */
-			while (i < node->nkids
-			       && nodeline >= (l = 1 + node->kids[i]->expanded)) {
-				nodeline -= l;
-				cursor -= l;
-				++i;
-			}
-
-			/* Now that nodeline is less than the number of
-			   visible nodes, we start displaying nodes from
-			   inside node->kids[i].  We may have to display nodes
-			   from one or more of the next kids as well. */
-
-			while (i < node->nkids && lines > 0) {
-				l = display_nodes_(line,lines,node->kids[i],nodeline,cursor,
-						   level+1);
-				ret += l; line += l; lines -= l;
-				nodeline = 0; /* continue at top of next 
-						 child's visible tree */
-				cursor -= (1 + node->kids[i]->expanded);
-				++i;
-			}
+		while (i < node->nkids && lines > 0) {
+			l = display_nodes_(line,lines,node->kids[i],nodeline,cursor,
+					   level+1);
+			ret += l; line += l; lines -= l;
+			nodeline = 0; /* continue at top of next 
+					 child's visible tree */
+			cursor -= (1 + node->kids[i]->expanded);
+			++i;
 		}
 	}
 
