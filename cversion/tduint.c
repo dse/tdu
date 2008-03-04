@@ -337,7 +337,7 @@ tdu_interface_display ()
 void
 tdu_interface_expand (int levels, int redraw)
 {
-	node_s *n = find_node_number(root_node,cursor_line);
+	node_s *n = find_node_numbered(root_node,cursor_line);
 
 	if (FULL_REDRAW) {
 		redraw = 1;
@@ -377,7 +377,7 @@ tdu_interface_expand (int levels, int redraw)
 void
 tdu_interface_collapse (int redraw)
 {
-	node_s *n = find_node_number(root_node,cursor_line);
+	node_s *n = find_node_numbered(root_node,cursor_line);
 
 	if (FULL_REDRAW) {
 		redraw = 1;
@@ -448,7 +448,7 @@ tdu_interface_pagedown ()
 void
 tdu_interface_sort (node_sort_fp fp,bool reverse,bool isrecursive)
 {
-	node_s *n = find_node_number(root_node,cursor_line);
+	node_s *n = find_node_numbered(root_node,cursor_line);
 	if (n && n->expanded) {
 
 		long lines = n->expanded;
@@ -655,11 +655,11 @@ tdu_interface_run (node_s *node)
 		case 'P':
 		case 'p':
 		{
-			node_s *node = find_node_number(root_node,cursor_line);
+			node_s *node = find_node_numbered(root_node,cursor_line);
 			node_s *parent = node ? node->parent : NULL;
 			if (parent) {
 				tdu_hide_cursor();
-				tdu_interface_setcursor(my_node_number(parent,root_node));
+				tdu_interface_setcursor(find_node_number_in(parent,root_node));
 			}
 			break;
 		}

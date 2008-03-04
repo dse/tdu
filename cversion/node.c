@@ -94,7 +94,7 @@ add_child (node_s *parent,
    create a new one under the specified node. */
 
 node_s *
-find_or_create_child(node_s *node, const char *name)
+find_or_create_child (node_s *node, const char *name)
 {
 	node_s *child;
 	gpointer found;
@@ -323,7 +323,7 @@ collapse_tree_ (node_s *node)	/* ptr to tree to collapse */
    in display_nodes_() if you can't figure out how this works. */
 
 node_s *
-find_node_number (node_s *node,long nodeline)
+find_node_numbered (node_s *node,long nodeline)
 {
 	int i; long l;
 	if(node && nodeline >= 0 && nodeline < (1 + node->expanded)) {
@@ -336,7 +336,7 @@ find_node_number (node_s *node,long nodeline)
 				nodeline -= l;
 				++i;
 			}
-			return find_node_number(node->kids[i],nodeline);
+			return find_node_numbered(node->kids[i],nodeline);
 		}
 	}
 	return NULL;
@@ -350,7 +350,7 @@ find_node_number (node_s *node,long nodeline)
    node's parent. */
 
 long
-my_node_number (node_s *node, node_s *root)
+find_node_number_in (node_s *node, node_s *root)
 {
 	if (node) {
 		long n = 0;
