@@ -552,186 +552,189 @@ tdu_interface_init_ncurses ()
 }
 
 void
-tdu_interface_run (node_s *node)
+tdu_interface_keypress (int key)
 {
 	int sortrecursive;
-	int lastkey,key;
-	int expandlevel;
+	static int expandlevel = 0;
+	static int lastkey = -1;
+
+	sortrecursive = (lastkey == '=');
+	
+	switch (key) {
+
+	case '=':
+		break;
+
+	case 3:                     /* C-c */
+	case 27:                    /* ESC */
+	case 'Q':
+	case 'q':
+	case 'X':
+	case 'x':
+		tdu_interface_finish(-1);
+
+	case 16:                    /* C-p */
+	case 'K':
+	case 'k':
+	case KEY_PREVIOUS:
+	case KEY_UP:
+		tdu_hide_cursor();
+		tdu_interface_move_up(1);
+		break;
+
+	case 14:                    /* C-n */
+	case 'j':
+	case 'J':
+	case KEY_NEXT:
+	case KEY_DOWN:
+		tdu_hide_cursor();
+		tdu_interface_move_down(1);
+		break;
+
+	case '<':
+	case KEY_HOME:
+		tdu_hide_cursor();
+		tdu_interface_move_to(0);
+		break;
+
+	case '>':
+	case KEY_END:
+		tdu_hide_cursor();
+		tdu_interface_move_to(root_node->expanded - 1);
+		break;
+
+	case KEY_SPREVIOUS:
+		tdu_hide_cursor();
+		tdu_interface_move_up(10);
+		break;
+
+	case KEY_SNEXT:
+		tdu_hide_cursor();
+		tdu_interface_move_down(10);
+		break;
+
+	case KEY_PPAGE:
+		tdu_hide_cursor();
+		tdu_interface_page_up();
+		break;
+
+	case KEY_NPAGE:
+		tdu_hide_cursor();
+		tdu_interface_page_down();
+		break;
+
+	case 'P':
+	case 'p':
+	{
+		node_s *node = find_node_numbered(root_node,cursor_line);
+		node_s *parent = node ? node->parent : NULL;
+		if (parent) {
+			tdu_hide_cursor();
+			tdu_interface_move_to(find_node_number_in(parent,root_node));
+		}
+		break;
+	}
+
+	case 'u':
+		tdu_interface_sort(node_cmp_unsort,
+				   0, sortrecursive); break;
+	case 'U':
+		tdu_interface_sort(node_cmp_unsort,
+				   1, sortrecursive); break;
+	case 's':
+		tdu_interface_sort(node_cmp_size,
+				   0, sortrecursive); break;
+	case 'S':
+		tdu_interface_sort(node_cmp_size,
+				   1, sortrecursive); break;
+	case 'n':
+		tdu_interface_sort(node_cmp_name,
+				   0, sortrecursive); break;
+	case 'N':
+		tdu_interface_sort(node_cmp_name,
+				   1, sortrecursive); break;
+	case 'd':
+		tdu_interface_sort(node_cmp_descendents,
+				   0, sortrecursive); break;
+	case 'D':
+		tdu_interface_sort(node_cmp_descendents,
+				   1, sortrecursive); break;
+
+	case 'l':
+	case 'L':
+	case '1':
+	case 6:                     /* C-f */
+	case KEY_RIGHT:
+		key = KEY_RIGHT;          /* so lastkey can be checked for repeats */
+		if (lastkey == KEY_RIGHT || (lastkey >= '2' && lastkey <= '9'))
+			++expandlevel;
+		else
+			expandlevel = 1;
+		tdu_interface_expand(expandlevel,expandlevel > 1);
+		break;
+
+	case 12:                    /* C-l */
+		start_line = cursor_line - visible_lines / 2;
+		tdu_interface_refresh();
+		break;
+
+	case 18:                    /* C-r */
+		redrawwin(curscr);
+		wrefresh(curscr);
+		break;
+
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+		expandlevel = key - '0';
+		tdu_interface_expand(expandlevel,1);
+		break;
+
+	case '*':
+		tdu_interface_expand(-1 /* fully */,1);
+		break;
+
+	case 'h':
+	case 'H':
+	case '0':
+	case 2:                     /* C-b */
+	case KEY_LEFT:
+		expandlevel = 0;
+		tdu_interface_collapse(0);
+		break;
+
+	default:
+		beep();
+		break;
+	}
+
+	lastkey = key;
+}
+
+void
+tdu_interface_run (node_s *node)
+{
+	int key;
 
 	root_node = node;
-
 	if (root_node->nkids == 1) {
 		root_node = root_node->kids[0];
 	}
 
-	signal(SIGINT, tdu_interface_finish);
+	signal(SIGINT,   tdu_interface_finish);
 	signal(SIGWINCH, tdu_interface_resize_handler);
 
 	tdu_interface_init_ncurses();
+	tdu_show_cursor();
 
 	while (1) {
 		key = wgetch(main_window);
-		sortrecursive = (lastkey == '=');
-
-		switch (key) {
-
-		case '=':
-			break;
-
-		case 3:                     /* C-c */
-		case 27:                    /* ESC */
-		case 'Q':
-		case 'q':
-		case 'X':
-		case 'x':
-			tdu_interface_finish(-1);
-			goto endloop;
-
-		case 16:                    /* C-p */
-		case 'K':
-		case 'k':
-		case KEY_PREVIOUS:
-		case KEY_UP:
-			tdu_hide_cursor();
-			tdu_interface_move_up(1);
-			break;
-
-		case 14:                    /* C-n */
-		case 'j':
-		case 'J':
-		case KEY_NEXT:
-		case KEY_DOWN:
-			tdu_hide_cursor();
-			tdu_interface_move_down(1);
-			break;
-
-		case '<':
-		case KEY_HOME:
-			tdu_hide_cursor();
-			tdu_interface_move_to(0);
-			break;
-
-		case '>':
-		case KEY_END:
-			tdu_hide_cursor();
-			tdu_interface_move_to(root_node->expanded - 1);
-			break;
-
-		case KEY_SPREVIOUS:
-			tdu_hide_cursor();
-			tdu_interface_move_up(10);
-			break;
-
-		case KEY_SNEXT:
-			tdu_hide_cursor();
-			tdu_interface_move_down(10);
-			break;
-
-		case KEY_PPAGE:
-			tdu_hide_cursor();
-			tdu_interface_page_up();
-			break;
-
-		case KEY_NPAGE:
-			tdu_hide_cursor();
-			tdu_interface_page_down();
-			break;
-
-		case 'P':
-		case 'p':
-		{
-			node_s *node = find_node_numbered(root_node,cursor_line);
-			node_s *parent = node ? node->parent : NULL;
-			if (parent) {
-				tdu_hide_cursor();
-				tdu_interface_move_to(find_node_number_in(parent,root_node));
-			}
-			break;
-		}
-
-		case 'u':
-			tdu_interface_sort(node_cmp_unsort,
-					   0, sortrecursive); break;
-		case 'U':
-			tdu_interface_sort(node_cmp_unsort,
-					   1, sortrecursive); break;
-		case 's':
-			tdu_interface_sort(node_cmp_size,
-					   0, sortrecursive); break;
-		case 'S':
-			tdu_interface_sort(node_cmp_size,
-					   1, sortrecursive); break;
-		case 'n':
-			tdu_interface_sort(node_cmp_name,
-					   0, sortrecursive); break;
-		case 'N':
-			tdu_interface_sort(node_cmp_name,
-					   1, sortrecursive); break;
-		case 'd':
-			tdu_interface_sort(node_cmp_descendents,
-					   0, sortrecursive); break;
-		case 'D':
-			tdu_interface_sort(node_cmp_descendents,
-					   1, sortrecursive); break;
-
-		case 'l':
-		case 'L':
-		case '1':
-		case 6:                     /* C-f */
-		case KEY_RIGHT:
-			key = KEY_RIGHT;          /* so lastkey can be checked for repeats */
-			if (lastkey == KEY_RIGHT || (lastkey >= '2' && lastkey <= '9'))
-				++expandlevel;
-			else
-				expandlevel = 1;
-			tdu_interface_expand(expandlevel,expandlevel > 1);
-			break;
-
-		case 12:                    /* C-l */
-			start_line = cursor_line - visible_lines / 2;
-			tdu_interface_refresh();
-			break;
-
-		case 18:                    /* C-r */
-			redrawwin(curscr);
-			wrefresh(curscr);
-			break;
-
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-			expandlevel = key - '0';
-			tdu_interface_expand(expandlevel,1);
-			break;
-
-		case '*':
-			tdu_interface_expand(-1 /* fully */,1);
-			break;
-
-		case 'h':
-		case 'H':
-		case '0':
-		case 2:                     /* C-b */
-		case KEY_LEFT:
-			expandlevel = 0;
-			tdu_interface_collapse(0);
-			break;
-
-		default:
-			beep();
-			break;
-
-		}
-
-		lastkey = key;
-
+		tdu_interface_keypress(key);
 	}
-endloop:
-	return;
 }
 
