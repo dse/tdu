@@ -50,27 +50,20 @@ display_tree_chars (node_s *node,   /* caller specifies node being displayed;
                                        we go up the chain of parents */
                     int levelsleft, /* max # "tree branch" levels to display,
                                        or -1 to go all the way */
-                    int thisisit,   /* flag: is this child we're displaying? */
-                    display_s ds
-	)
+                    int thisisit)   /* flag: is this child we're displaying? */
 {
 	/* first display branches related to parents */
 	if (node->parent && levelsleft > 0) {
 		display_tree_chars(node->parent,
 				   (levelsleft < 0) ? -1 : (levelsleft - 1),
-				   0,ds);
+				   0);
 	}
 	if (levelsleft) {
 		tree_chars_enum tc =
 			(thisisit
 			 ? (node->islastkid ? IAM_LAST : IAM_NOTLAST)
 			 : (node->islastkid ? PARENT_LAST : PARENT_NOTLAST));
-		if (ds.fpt) {
-			(ds.fpt)(tc);
-		} else {
-			/* generic "default" code for debugging purposes */
-			printf(tree_chars_string[tc]);
-		}
+		tdu_interface_display_tree_chars(tc);
 	}
 }
 
@@ -81,24 +74,9 @@ void
 display_node (int line,         /* line number on screen */
               node_s *node,     /* node to display */
               int level,        /* amount of indentation */
-              bool iscursor,    /* display as cursor or not */
-              display_s ds)
+              bool iscursor)    /* display as cursor or not */
 {
-	if (ds.fpn)
-		(ds.fpn)(line,node,level,iscursor);
-	else {
-		/* generic "default" code for debugging purposes */
-		printf(iscursor ? "=> " : "   ");
-		printf("[%3d] ",line);
-		if (node) {
-			display_tree_chars(node,level,1,ds);
-			printf("%s (%ld)",node->name,node->size);
-			if (!node->expanded && node->descendents) {
-				printf(" ...");
-			}
-		}
-		printf("\n");
-	}
+	tdu_interface_display_node(line, node, level, iscursor);	
 }
 
 /* Generic function to display nodes from a tree on the screen. */
@@ -108,16 +86,14 @@ display_nodes (int line,        /* starting line number on screen */
                int lines,       /* number of lines to display on screen */
                node_s *node,    /* node of parent */
                long nodeline,   /* line # within tree to start displaying */
-               long cursor,     /* line # within tree where cursor is
+               long cursor)     /* line # within tree where cursor is
                                    located */
-               display_s ds
-	)        /* line # within tree where cursor is */
 {
-	int nodes = display_nodes_(line,lines,node,nodeline,cursor,ds,0);
+	int nodes = display_nodes_(line,lines,node,nodeline,cursor,0);
 	line += nodes;
 	lines -= nodes;
 	for (; lines > 0; ++line,--lines) {
-		display_node(line,NULL,0,0,ds);
+		display_node(line,NULL,0,0);
 	}
 	return nodes;
 }
@@ -130,7 +106,6 @@ display_nodes_ (int line,       /* starting line number on screen */
                 node_s *node,   /* node of parent */
                 long nodeline,  /* line # within tree to start displaying */
                 long cursor,    /* line # within tree where cursor is loc'd */
-                display_s ds,
                 int level)      /* level of indentation */
 {
 	long ret = 0; int i; long l;
@@ -141,7 +116,7 @@ display_nodes_ (int line,       /* starting line number on screen */
 		/* Do we start displaying the tree at this node? */
 
 		if (nodeline == 0) {
-			display_node(line,node,level,nodeline == cursor,ds);
+			display_node(line,node,level,nodeline == cursor);
 			++ret; ++line; --lines;   /* a line was displayed */
 			--cursor; /* one node closer to cursor */
 		} else {
@@ -170,7 +145,7 @@ display_nodes_ (int line,       /* starting line number on screen */
 
 			while (i < node->nkids && lines > 0) {
 				l = display_nodes_(line,lines,node->kids[i],nodeline,cursor,
-						   ds,level+1);
+						   level+1);
 				ret += l; line += l; lines -= l;
 				nodeline = 0; /* continue at top of next 
 						 child's visible tree */
@@ -194,11 +169,6 @@ int prev_start_line;		/* value of start_line when screen was
 				   refreshed */
 int visible_lines;		/* # lines on screen */
 WINDOW *tduwin;
-
-display_s tdu_interface_ds = {
-	tdu_interface_display_node,	/* fpn */
-	tdu_interface_display_tree_chars /* fpt */
-};
 
 void
 tdu_hide_cursor ()
@@ -227,7 +197,7 @@ tdu_interface_display_node (int line, /* screen line # */
 
 	if (node) {
 		wprintw_custom(tduwin,"%11ld ",node->size);
-		display_tree_chars(node,level,1,tdu_interface_ds);
+		display_tree_chars(node,level,1);
 		wprintw_custom(tduwin,"%s",node->name);
 		if(node->nkids && !node->expanded) {
 			wprintw_custom(tduwin," ...");
@@ -292,7 +262,7 @@ tdu_interface_refresh ()
 
 	if (prev_start_line < 0)
 	{
-		display_nodes(0,visible_lines,root_node,start_line,cursor_line,tdu_interface_ds);
+		display_nodes(0,visible_lines,root_node,start_line,cursor_line);
 	}
 	else
 	{
@@ -320,13 +290,13 @@ tdu_interface_refresh ()
 		/* if we scroll too much, just redisplay the whole thing */
 		if (lines <= -visible_lines || lines >= visible_lines)
 			display_nodes(0,visible_lines,root_node,
-				      start_line,cursor_line,tdu_interface_ds);
+				      start_line,cursor_line);
 
 		/* do we need to scroll down? */
 		else if (lines < 0) {
 			wscrl(tduwin,lines);
 			display_nodes(0,-lines,root_node,
-				      start_line,cursor_line,tdu_interface_ds);
+				      start_line,cursor_line);
 		}
 
 
@@ -335,7 +305,7 @@ tdu_interface_refresh ()
 			wscrl(tduwin,lines);
 			display_nodes(visible_lines - lines,lines,root_node,
 				      start_line + visible_lines - lines,
-				      cursor_line,tdu_interface_ds);
+				      cursor_line);
 		}
 	}
 
@@ -349,7 +319,7 @@ tdu_interface_refresh ()
 void
 tdu_interface_display ()
 {
-	display_nodes(0,visible_lines,root_node,start_line,cursor_line,tdu_interface_ds);
+	display_nodes(0,visible_lines,root_node,start_line,cursor_line);
 	tdu_interface_refresh();
 }
 
@@ -374,22 +344,19 @@ tdu_interface_expand (int levels, int redraw)
 		if (scrolllines) {
 			if (redraw) {
 				display_nodes(cursor_line - start_line,visible_lines - (cursor_line - start_line),
-					      root_node,cursor_line,cursor_line,
-					      tdu_interface_ds);
+					      root_node,cursor_line,cursor_line);
 				tdu_interface_refresh();
 			} else {
 				long maxlines = visible_lines - (cursor_line - start_line);
 
 				if (scrolllines >= maxlines - 1) {
 					display_nodes(cursor_line - start_line,visible_lines - (cursor_line - start_line),
-						      root_node,cursor_line,cursor_line,
-						      tdu_interface_ds);
+						      root_node,cursor_line,cursor_line);
 				} else {
 					tdu_interface_refresh();
 					insdelln(scrolllines);
 					display_nodes(cursor_line - start_line,scrolllines + 1,
-						      root_node,cursor_line,cursor_line,
-						      tdu_interface_ds);
+						      root_node,cursor_line,cursor_line);
 				}
 				tdu_interface_refresh();
 			}
@@ -415,25 +382,21 @@ tdu_interface_collapse (int redraw)
 		if (scrolllines) {
 			if (redraw) {
 				display_nodes(cursor_line - start_line,visible_lines - (cursor_line - start_line),
-					      root_node,cursor_line,cursor_line,
-					      tdu_interface_ds);
+					      root_node,cursor_line,cursor_line);
 				tdu_interface_refresh();
 			} else {
 				long maxlines = visible_lines - (cursor_line - start_line);
 				if (scrolllines >= maxlines - 1) {
 					display_nodes(cursor_line - start_line,
 						      visible_lines - (cursor_line - start_line),
-						      root_node,cursor_line,cursor_line,
-						      tdu_interface_ds);
+						      root_node,cursor_line,cursor_line);
 				} else {
 					tdu_interface_refresh();
 					winsdelln(tduwin,-scrolllines);
 					display_nodes(cursor_line - start_line,1,
-						      root_node,cursor_line,cursor_line,
-						      tdu_interface_ds);
+						      root_node,cursor_line,cursor_line);
 					display_nodes(visible_lines - scrolllines,scrolllines,
-						      root_node,cursor_line + maxlines - scrolllines,cursor_line,
-						      tdu_interface_ds);
+						      root_node,cursor_line + maxlines - scrolllines,cursor_line);
 				}
 				tdu_interface_refresh();
 			}
@@ -493,8 +456,7 @@ tdu_interface_sort (node_sort_fp fp,bool reverse,bool isrecursive)
 			      lines,
 			      root_node,
 			      cursor_line + 1,
-			      cursor_line,
-			      tdu_interface_ds);
+			      cursor_line);
 		tdu_interface_refresh();
 	}
 }

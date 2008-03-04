@@ -61,19 +61,10 @@ typedef void (*tree_chars_display_fp)
 (enum tree_chars e);		/* determines which type of "tree branch"
 				   characters to display */
 
-/* A display_s structure is a collection of all functions necessary to
-   display "tree branch" characters and information stored in a node
-   on some type of display (such as the tdu interface) */
-
-typedef struct display {
-	node_display_fp fpn;
-	tree_chars_display_fp fpt;
-} display_s;
-
-void display_tree_chars(node_s *node, int levelsleft, int thisisit, display_s ds);
-void display_node(int line, node_s *node, int level, bool iscursor, display_s ds);
-int display_nodes(int line, int lines, node_s *node, long nodeline, long cursor, display_s ds);
-int display_nodes_(int line, int lines, node_s *node, long nodeline, long cursor, display_s ds, int level);
+void display_tree_chars(node_s *node, int levelsleft, int thisisit);
+void display_node(int line, node_s *node, int level, bool iscursor);
+int display_nodes(int line, int lines, node_s *node, long nodeline, long cursor);
+int display_nodes_(int line, int lines, node_s *node, long nodeline, long cursor, int level);
 void tdu_hide_cursor(void);
 void tdu_show_cursor(void);
 void tdu_interface_display_node(int line, node_s *node, int level, bool iscursor);
