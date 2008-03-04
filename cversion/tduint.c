@@ -186,13 +186,13 @@ display_nodes_ (int line,       /* starting line number on screen */
 /*****************************************************************************/
 /* tdu interface functions */
 
-node_s *root_node;                /* root node of tree being displayed */
-int cursor_line;                  /* line # in tree where "cursor" is located */
-int start_line;                   /* line # in tree where top line on screen is
-                                   located */
-int prev_start_line;              /* value of start_line when screen was
-                                   refreshed */
-int visible_lines;                   /* # lines on screen */
+node_s *root_node;		/* root node of tree being displayed */
+int cursor_line;		/* line # in tree where "cursor" is located */
+int start_line;			/* line # in tree where top line on screen is
+				   located */
+int prev_start_line;		/* value of start_line when screen was
+				   refreshed */
+int visible_lines;		/* # lines on screen */
 WINDOW *tduwin;
 
 display_s tdu_interface_ds = {
