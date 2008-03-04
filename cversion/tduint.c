@@ -170,6 +170,9 @@ int prev_start_line;		/* value of start_line when screen was
 int visible_lines;		/* # lines on screen */
 WINDOW *tdu_window;
 
+WINDOW *main_window;
+WINDOW *status_window;
+
 void
 tdu_hide_cursor ()
 {
@@ -179,7 +182,7 @@ tdu_hide_cursor ()
 void
 tdu_show_cursor ()
 {
-	wmove(tdu_window,cursor_line - start_line, 0);
+	wmove(main_window,cursor_line - start_line, 0);
 	curs_set(1);
 }
 
@@ -192,15 +195,15 @@ tdu_interface_display_node (int line, /* screen line # */
                             int level,
                             bool iscursor)
 {
-	wmove(tdu_window,line,0);
-	wclrtoeol(tdu_window);
+	wmove(main_window,line,0);
+	wclrtoeol(main_window);
 
 	if (node) {
-		wprintw_custom(tdu_window,"%11ld ",node->size);
+		wprintw_custom(main_window,"%11ld ",node->size);
 		display_tree_chars(node,level,1);
-		wprintw_custom(tdu_window,"%s",node->name);
+		wprintw_custom(main_window,"%s",node->name);
 		if(node->nkids && !node->expanded) {
-			wprintw_custom(tdu_window," ...");
+			wprintw_custom(main_window," ...");
 		}
 	}
 }
@@ -214,33 +217,33 @@ tdu_interface_display_tree_chars (tree_chars_enum tc)
 	if (USE_ACS_CHARS) {
 		switch (tc) {
 		case IAM_LAST:
-			waddch_custom(tdu_window,ACS_LLCORNER);
+			waddch_custom(main_window,ACS_LLCORNER);
 			if (THREE_ACS_CHARS) {
-				waddch_custom(tdu_window,ACS_HLINE);
+				waddch_custom(main_window,ACS_HLINE);
 			}
 			break;
 		case IAM_NOTLAST:
-			waddch_custom(tdu_window,ACS_LTEE);
+			waddch_custom(main_window,ACS_LTEE);
 			if (THREE_ACS_CHARS) {
-				waddch_custom(tdu_window,ACS_HLINE);
+				waddch_custom(main_window,ACS_HLINE);
 			}
 			break;
 		case PARENT_LAST:
-			waddch_custom(tdu_window,' ');
+			waddch_custom(main_window,' ');
 			if (THREE_ACS_CHARS) {
-				waddch_custom(tdu_window,' ');
+				waddch_custom(main_window,' ');
 			}
 			break;
 		case PARENT_NOTLAST:
-			waddch_custom(tdu_window,ACS_VLINE);
+			waddch_custom(main_window,ACS_VLINE);
 			if (THREE_ACS_CHARS) {
-				waddch_custom(tdu_window,' ');
+				waddch_custom(main_window,' ');
 			}
 			break;
 		}
-		waddch_custom(tdu_window,' ');
+		waddch_custom(main_window,' ');
 	} else {
-		wprintw_custom(tdu_window, tree_chars_string[tc]);
+		wprintw_custom(main_window, tree_chars_string[tc]);
 	}
 }
 
@@ -294,7 +297,7 @@ tdu_interface_refresh ()
 
 		/* do we need to scroll down? */
 		else if (lines < 0) {
-			wscrl(tdu_window,lines);
+			wscrl(main_window,lines);
 			display_nodes(0,-lines,root_node,
 				      start_line,cursor_line);
 		}
@@ -302,15 +305,16 @@ tdu_interface_refresh ()
 
 		/* do we need to scroll up? */
 		else if (lines > 0) {
-			wscrl(tdu_window,lines);
+			wscrl(main_window,lines);
 			display_nodes(visible_lines - lines,lines,root_node,
 				      start_line + visible_lines - lines,
 				      cursor_line);
 		}
 	}
 
+	wrefresh(status_window);
+	wrefresh(main_window);
 	tdu_show_cursor();
-	wrefresh(tdu_window);
 	prev_start_line = start_line;
 }
 
@@ -392,7 +396,7 @@ tdu_interface_collapse (int redraw)
 						      root_node,cursor_line,cursor_line);
 				} else {
 					tdu_interface_refresh();
-					winsdelln(tdu_window,-scrolllines);
+					winsdelln(main_window,-scrolllines);
 					display_nodes(cursor_line - start_line,1,
 						      root_node,cursor_line,cursor_line);
 					display_nodes(visible_lines - scrolllines,scrolllines,
@@ -461,40 +465,59 @@ tdu_interface_sort (node_sort_fp fp,bool reverse,bool isrecursive)
 	}
 }
 
-/* Initialize the screen and run the getch()-action loop. */
+void
+tdu_interface_compute_visible_lines ()
+{
+	int bx,by,ex,ey;
+	getbegyx(main_window, by, bx);
+	getmaxyx(main_window, ey, ex);
+	visible_lines = ey - by;
+}
+
+void
+tdu_interface_init_ncurses ()
+{
+	tdu_window = initscr();
+	keypad(tdu_window, TRUE);
+	nonl();
+	cbreak();
+	noecho();
+	scrollok(tdu_window, 1);
+
+	main_window = newwin(LINES - 1, COLS, 0, 0);
+	status_window = newwin(1, COLS, LINES - 1, 0);
+
+	keypad(main_window, TRUE);
+	scrollok(main_window, 1);
+	
+	tdu_interface_compute_visible_lines();
+
+	prev_start_line = -1;
+	start_line = 0;
+	cursor_line = 0;
+
+	tdu_interface_display();
+}
 
 void
 tdu_interface_run (node_s *node)
 {
-	int bx,by,ex,ey;
 	int sortrecursive;
 	int lastkey,key;
 	int expandlevel;
 
 	root_node = node;
-	start_line = 0;
-	cursor_line = 0;
-	prev_start_line = -1;
 
 	if (root_node->nkids == 1) {
 		root_node = root_node->kids[0];
 	}
 
 	signal(SIGINT,tdu_interface_finish);
-	tdu_window = initscr();
-	keypad(tdu_window,TRUE);
-	nonl();
-	cbreak();
-	noecho();
-	scrollok(tdu_window,1);
-	getbegyx(tdu_window,by,bx);
-	getmaxyx(tdu_window,ey,ex);
-	visible_lines = ey - by;
 
-	tdu_interface_display();
+	tdu_interface_init_ncurses();
 
 	while (1) {
-		key = wgetch(tdu_window);
+		key = wgetch(main_window);
 		sortrecursive = (lastkey == '=');
 
 		switch (key) {
