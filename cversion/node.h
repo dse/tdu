@@ -65,7 +65,7 @@ typedef int (*node_sort_fp)(const node_s *,const node_s *);
 
 void initialize_node(node_s *node);
 node_s *new_node(const char *name);
-void add_kid(node_s *parent, node_s *kid);
+void add_child(node_s *parent, node_s *kid);
 node_s *find_or_create_child(node_s *node, const char *name);
 void add_node(node_s *root, const char *pathname, long size);
 long fix_tree_sizes(node_s *node);

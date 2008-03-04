@@ -60,7 +60,7 @@ new_node (const char *name)	/* if not NULL, initialize node's name */
 
 /* Have a parent node adopt an existing node, kid, as a child. */
 void 
-add_kid (node_s *parent,
+add_child (node_s *parent,
 	 node_s *kid)
 {
 	if (!parent || !kid)
@@ -109,7 +109,7 @@ find_or_create_child(node_s *node, const char *name)
 		}
 	}
 	if ((child = new_node(name)) != NULL) {
-		add_kid(node,child);
+		add_child(node,child);
 		return child;
 	}
 	return NULL;
