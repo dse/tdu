@@ -70,6 +70,7 @@ node_s *find_or_create_child(node_s *node, const char *name);
 void add_node(node_s *root, const char *pathname, long size);
 long fix_tree_sizes(node_s *node);
 long fix_tree_descendents(node_s *node);
+long cleanup_tree(node_s *node);
 void dump_tree(node_s *node, int level);
 long expand_tree(node_s *node, int level);
 long expand_tree_(node_s *node, int level);

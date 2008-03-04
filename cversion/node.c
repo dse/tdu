@@ -181,8 +181,8 @@ fix_tree_descendents (node_s *node)
 
 	descendents = node->nkids;
 
-	/* return existing #descendents if already computed */
-	if (node->descendents >= 0) return node->descendents;
+	if (node->descendents >= 0) /* if already computed */
+		return node->descendents;
 
 	if (node->kids && node->nkids) {
 		int i;
@@ -194,6 +194,19 @@ fix_tree_descendents (node_s *node)
 		}
 	}
 	return node->descendents = descendents;
+}
+
+void
+cleanup_tree (node_s *node)
+{
+	int i;
+	if (node && node->kids_by_name) {
+		g_hash_table_destroy(node->kids_by_name);
+		node->kids_by_name = NULL;
+		for (i = 0; i < node->nkids; ++i) {
+			cleanup_tree(node->kids[i]);
+		}
+	}
 }
 
 /* === THIS IS A RECURSIVE FUNCTION. === */
@@ -483,6 +496,7 @@ parse_file (const char *pathname) /* filename, or "-" or NULL for stdin */
   
 	fix_tree_sizes(node);
 	fix_tree_descendents(node);
+	cleanup_tree(node);
 	return node;
 }
 
