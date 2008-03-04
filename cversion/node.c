@@ -397,6 +397,12 @@ node_cmp_name(const node_s *a,const node_s *b)
 	return strcmp(a->name,b->name); 
 }
 
+int
+node_cmp_descendents(const node_s *a,const node_s *b)
+{
+	return (a->descendents - b->descendents);
+}
+
 /* see below */
 static node_sort_fp node_sort = node_cmp_unsort;
 static bool node_sort_rev = 0;

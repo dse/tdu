@@ -611,12 +611,30 @@ tdu_interface_run (node_s *node)
 			break;
 		}
 
-		case 'u': tdu_interface_sort(node_cmp_unsort,0,sortrecursive); break;
-		case 'U': tdu_interface_sort(node_cmp_unsort,1,sortrecursive); break;
-		case 's': tdu_interface_sort(node_cmp_size,0,sortrecursive); break;
-		case 'S': tdu_interface_sort(node_cmp_size,1,sortrecursive); break;
-		case 'n': tdu_interface_sort(node_cmp_name,0,sortrecursive); break;
-		case 'N': tdu_interface_sort(node_cmp_name,1,sortrecursive); break;
+		case 'u':
+			tdu_interface_sort(node_cmp_unsort,
+					   0, sortrecursive); break;
+		case 'U':
+			tdu_interface_sort(node_cmp_unsort,
+					   1, sortrecursive); break;
+		case 's':
+			tdu_interface_sort(node_cmp_size,
+					   0, sortrecursive); break;
+		case 'S':
+			tdu_interface_sort(node_cmp_size,
+					   1, sortrecursive); break;
+		case 'n':
+			tdu_interface_sort(node_cmp_name,
+					   0, sortrecursive); break;
+		case 'N':
+			tdu_interface_sort(node_cmp_name,
+					   1, sortrecursive); break;
+		case 'd':
+			tdu_interface_sort(node_cmp_descendents,
+					   0, sortrecursive); break;
+		case 'D':
+			tdu_interface_sort(node_cmp_descendents,
+					   1, sortrecursive); break;
 
 		case 'l':
 		case 'L':

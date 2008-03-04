@@ -81,6 +81,7 @@ long my_node_number(node_s *node, node_s *root);
 int node_cmp_size(const node_s *a, const node_s *b);
 int node_cmp_unsort(const node_s *a, const node_s *b);
 int node_cmp_name(const node_s *a, const node_s *b);
+int node_cmp_descendents(const node_s *a, const node_s *b);
 int node_qsort_cmp(const void *aa, const void *bb);
 void tree_sort(node_s *node, node_sort_fp fp, bool reverse, bool isrecursive);
 node_s *parse_file(const char *pathname);
