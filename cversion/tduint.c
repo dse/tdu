@@ -27,6 +27,8 @@
 #include <curses.h>
 #include <stdio.h>
 #include <signal.h>
+#include <sys/ioctl.h>
+#include <pty.h>
 
 /*****************************************************************************/
 
@@ -477,6 +479,8 @@ tdu_interface_compute_visible_lines ()
 void
 tdu_interface_init_ncurses ()
 {
+	freopen("/dev/tty", "r", stdin);
+  
 	tdu_window = initscr();
 	keypad(tdu_window, TRUE);
 	nonl();
@@ -500,6 +504,69 @@ tdu_interface_init_ncurses ()
 }
 
 void
+tdu_interface_get_screen_size(int *lines, int *columns)
+{
+	FILE *tty;
+	struct winsize ws;
+
+	tty = fopen("/dev/tty", "r+");
+	if (!tty) {
+		endwin();
+		fprintf(stderr, "oh crap, no tty!");
+		exit(1);
+	}
+
+	ioctl(fileno(tty), TIOCGWINSZ, &ws);
+	fclose(tty);
+
+	*lines = ws.ws_row;
+	*columns = ws.ws_col;
+}
+
+void
+tdu_interface_resize_handler (int sig)
+{
+	int lines, columns;
+	char number[sizeof(int) * 8 + 1]; /* overkill, I know. I don't care. */
+
+	endwin();
+	tdu_interface_get_screen_size(&lines, &columns);
+	COLS = columns;
+	LINES = lines;
+
+	if (getenv("LINES")) {
+		sprintf(number, "%d", lines);
+		setenv("LINES", number, 1);
+	}
+	if (getenv("COLS")) {
+		sprintf(number, "%d", columns);
+		setenv("COLS", number, 1);
+	}
+	
+	delwin(main_window);
+	delwin(status_window);
+
+	werase(tdu_window);
+	wresize(tdu_window, lines, columns);
+	doupdate();
+
+	main_window = newwin(LINES - 1, COLS, 0, 0);
+	status_window = newwin(1, COLS, LINES - 1, 0);
+
+	keypad(main_window, TRUE);
+	scrollok(main_window, 1);
+	
+	tdu_interface_compute_visible_lines();
+
+	prev_start_line = -1;
+	if (cursor_line > (start_line + visible_lines - 1)) {
+		start_line = cursor_line - (visible_lines - 1);
+	}
+	
+	tdu_interface_display();
+}
+
+void
 tdu_interface_run (node_s *node)
 {
 	int sortrecursive;
@@ -512,7 +579,8 @@ tdu_interface_run (node_s *node)
 		root_node = root_node->kids[0];
 	}
 
-	signal(SIGINT,tdu_interface_finish);
+	signal(SIGINT, tdu_interface_finish);
+	signal(SIGWINCH, tdu_interface_resize_handler);
 
 	tdu_interface_init_ncurses();
 

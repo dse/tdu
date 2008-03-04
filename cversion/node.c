@@ -492,14 +492,10 @@ parse_file (const char *pathname) /* filename, or "-" or NULL for stdin */
 			fprintf(stderr,"%ld entries\r",entries);
 	}
 
-	if (in == stdin) {
-		/* DIRTY HACK: reopen from tty for curses.  
-		   I hope this works everywhere. */
-		freopen("/dev/tty","r",stdin);
-	} else {
+	if (in != stdin) {
 		fclose(in);
 	}
-  
+
 	fix_tree_sizes(node);
 	fix_tree_descendents(node);
 	cleanup_tree(node);
