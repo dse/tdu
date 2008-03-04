@@ -235,7 +235,7 @@ void
 tdu_interface_finish (int sig)
 {
 	endwin();
-	if(sig >= 0) exit(0);
+	if (sig >= 0) exit(0);
 }
 
 /* ensure that cursor is in a location on the screen, adjusting
@@ -572,6 +572,7 @@ tdu_interface_keypress (int key)
 	case 'X':
 	case 'x':
 		tdu_interface_finish(-1);
+		exit(0);
 
 	case 16:                    /* C-p */
 	case 'K':
