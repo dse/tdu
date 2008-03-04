@@ -187,12 +187,12 @@ display_nodes_ (int line,       /* starting line number on screen */
 /* tdu interface functions */
 
 node_s *root_node;                /* root node of tree being displayed */
-int intcursor;                  /* line # in tree where "cursor" is located */
-int intstart;                   /* line # in tree where top line on screen is
+int cursor_line;                  /* line # in tree where "cursor" is located */
+int start_line;                   /* line # in tree where top line on screen is
                                    located */
-int prev_intstart;              /* value of intstart when screen was
+int prev_start_line;              /* value of start_line when screen was
                                    refreshed */
-int intlines;                   /* # lines on screen */
+int visible_lines;                   /* # lines on screen */
 WINDOW *tduwin;
 
 display_s tdu_interface_ds = {
@@ -209,7 +209,7 @@ tdu_hide_cursor ()
 void
 tdu_show_cursor ()
 {
-	wmove(tduwin,intcursor - intstart, CURSORX);
+	wmove(tduwin,cursor_line - start_line, CURSORX);
 	curs_set(1);
 }
 
@@ -290,58 +290,58 @@ tdu_interface_refresh ()
 {
 	int lines;
 
-	if (prev_intstart < 0)
+	if (prev_start_line < 0)
 	{
-		display_nodes(0,intlines,root_node,intstart,intcursor,tdu_interface_ds);
+		display_nodes(0,visible_lines,root_node,start_line,cursor_line,tdu_interface_ds);
 	}
 	else
 	{
-		/* make sure intcursor is within reasonable range */
-		if (intcursor < 0)
-			intcursor = 0;
-		else if (intcursor > root_node->expanded)
-			intcursor = root_node->expanded;
+		/* make sure cursor_line is within reasonable range */
+		if (cursor_line < 0)
+			cursor_line = 0;
+		else if (cursor_line > root_node->expanded)
+			cursor_line = root_node->expanded;
 
-		/* position intstart such that intcursor is on the screen */
-		if (intcursor < intstart) /* up off the screen? */
-			intstart = intcursor;
-		else if (intcursor > (intstart+intlines-1)) /* down off the screen? */
-			intstart = intcursor - (intlines - 1);
+		/* position start_line such that cursor_line is on the screen */
+		if (cursor_line < start_line) /* up off the screen? */
+			start_line = cursor_line;
+		else if (cursor_line > (start_line+visible_lines-1)) /* down off the screen? */
+			start_line = cursor_line - (visible_lines - 1);
 
-		/* make sure intstart is within reasonable range */
-		if (intstart < 0)
-			intstart = 0;
-		else if (intstart > root_node->expanded)
-			intstart = root_node->expanded;
+		/* make sure start_line is within reasonable range */
+		if (start_line < 0)
+			start_line = 0;
+		else if (start_line > root_node->expanded)
+			start_line = root_node->expanded;
 
 		/* do we have to scroll the screen? */
-		lines = intstart - prev_intstart;
+		lines = start_line - prev_start_line;
 
 		/* if we scroll too much, just redisplay the whole thing */
-		if (lines <= -intlines || lines >= intlines)
-			display_nodes(0,intlines,root_node,
-				      intstart,intcursor,tdu_interface_ds);
+		if (lines <= -visible_lines || lines >= visible_lines)
+			display_nodes(0,visible_lines,root_node,
+				      start_line,cursor_line,tdu_interface_ds);
 
 		/* do we need to scroll down? */
 		else if (lines < 0) {
 			wscrl(tduwin,lines);
 			display_nodes(0,-lines,root_node,
-				      intstart,intcursor,tdu_interface_ds);
+				      start_line,cursor_line,tdu_interface_ds);
 		}
 
 
 		/* do we need to scroll up? */
 		else if (lines > 0) {
 			wscrl(tduwin,lines);
-			display_nodes(intlines - lines,lines,root_node,
-				      intstart + intlines - lines,
-				      intcursor,tdu_interface_ds);
+			display_nodes(visible_lines - lines,lines,root_node,
+				      start_line + visible_lines - lines,
+				      cursor_line,tdu_interface_ds);
 		}
 	}
 
 	tdu_show_cursor();
 	wrefresh(tduwin);
-	prev_intstart = intstart;
+	prev_start_line = start_line;
 }
 
 /* Re-display the entire screen */
@@ -349,7 +349,7 @@ tdu_interface_refresh ()
 void
 tdu_interface_display ()
 {
-	display_nodes(0,intlines,root_node,intstart,intcursor,tdu_interface_ds);
+	display_nodes(0,visible_lines,root_node,start_line,cursor_line,tdu_interface_ds);
 	tdu_interface_refresh();
 }
 
@@ -361,7 +361,7 @@ tdu_interface_display ()
 void
 tdu_interface_expand (int levels, int redraw)
 {
-	node_s *n = find_node_number(root_node,intcursor);
+	node_s *n = find_node_number(root_node,cursor_line);
 
 	if (FULL_REDRAW) {
 		redraw = 1;
@@ -373,22 +373,22 @@ tdu_interface_expand (int levels, int redraw)
 		long scrolllines = expand_tree(n,levels);
 		if (scrolllines) {
 			if (redraw) {
-				display_nodes(intcursor - intstart,intlines - (intcursor - intstart),
-					      root_node,intcursor,intcursor,
+				display_nodes(cursor_line - start_line,visible_lines - (cursor_line - start_line),
+					      root_node,cursor_line,cursor_line,
 					      tdu_interface_ds);
 				tdu_interface_refresh();
 			} else {
-				long maxlines = intlines - (intcursor - intstart);
+				long maxlines = visible_lines - (cursor_line - start_line);
 
 				if (scrolllines >= maxlines - 1) {
-					display_nodes(intcursor - intstart,intlines - (intcursor - intstart),
-						      root_node,intcursor,intcursor,
+					display_nodes(cursor_line - start_line,visible_lines - (cursor_line - start_line),
+						      root_node,cursor_line,cursor_line,
 						      tdu_interface_ds);
 				} else {
 					tdu_interface_refresh();
 					insdelln(scrolllines);
-					display_nodes(intcursor - intstart,scrolllines + 1,
-						      root_node,intcursor,intcursor,
+					display_nodes(cursor_line - start_line,scrolllines + 1,
+						      root_node,cursor_line,cursor_line,
 						      tdu_interface_ds);
 				}
 				tdu_interface_refresh();
@@ -404,7 +404,7 @@ tdu_interface_expand (int levels, int redraw)
 void
 tdu_interface_collapse (int redraw)
 {
-	node_s *n = find_node_number(root_node,intcursor);
+	node_s *n = find_node_number(root_node,cursor_line);
 
 	if (FULL_REDRAW) {
 		redraw = 1;
@@ -414,25 +414,25 @@ tdu_interface_collapse (int redraw)
 		long scrolllines = collapse_tree(n);
 		if (scrolllines) {
 			if (redraw) {
-				display_nodes(intcursor - intstart,intlines - (intcursor - intstart),
-					      root_node,intcursor,intcursor,
+				display_nodes(cursor_line - start_line,visible_lines - (cursor_line - start_line),
+					      root_node,cursor_line,cursor_line,
 					      tdu_interface_ds);
 				tdu_interface_refresh();
 			} else {
-				long maxlines = intlines - (intcursor - intstart);
+				long maxlines = visible_lines - (cursor_line - start_line);
 				if (scrolllines >= maxlines - 1) {
-					display_nodes(intcursor - intstart,
-						      intlines - (intcursor - intstart),
-						      root_node,intcursor,intcursor,
+					display_nodes(cursor_line - start_line,
+						      visible_lines - (cursor_line - start_line),
+						      root_node,cursor_line,cursor_line,
 						      tdu_interface_ds);
 				} else {
 					tdu_interface_refresh();
 					winsdelln(tduwin,-scrolllines);
-					display_nodes(intcursor - intstart,1,
-						      root_node,intcursor,intcursor,
+					display_nodes(cursor_line - start_line,1,
+						      root_node,cursor_line,cursor_line,
 						      tdu_interface_ds);
-					display_nodes(intlines - scrolllines,scrolllines,
-						      root_node,intcursor + maxlines - scrolllines,intcursor,
+					display_nodes(visible_lines - scrolllines,scrolllines,
+						      root_node,cursor_line + maxlines - scrolllines,cursor_line,
 						      tdu_interface_ds);
 				}
 				tdu_interface_refresh();
@@ -444,56 +444,56 @@ tdu_interface_collapse (int redraw)
 void
 tdu_interface_moveup (int n)
 {
-	intcursor -= n;
+	cursor_line -= n;
 	tdu_interface_refresh();
 }
 
 void
 tdu_interface_movedown (int n)
 {
-	intcursor += n;
+	cursor_line += n;
 	tdu_interface_refresh();
 }
 
 void
 tdu_interface_setcursor (int n)
 {
-	intcursor = n;
+	cursor_line = n;
 	tdu_interface_refresh();
 }
 
 void
 tdu_interface_pageup ()
 {
-	intcursor -= (intlines - 1);
+	cursor_line -= (visible_lines - 1);
 	tdu_interface_refresh();
 }
 
 void
 tdu_interface_pagedown ()
 {
-	intcursor += (intlines - 1);
+	cursor_line += (visible_lines - 1);
 	tdu_interface_refresh();
 }
 
 void
 tdu_interface_sort (node_sort_fp fp,bool reverse,bool isrecursive)
 {
-	node_s *n = find_node_number(root_node,intcursor);
+	node_s *n = find_node_number(root_node,cursor_line);
 	if (n && n->expanded) {
 
 		long lines = n->expanded;
-		long maxlines = intlines - (intcursor - intstart) - 1;
+		long maxlines = visible_lines - (cursor_line - start_line) - 1;
 
 		tree_sort(n,fp,reverse,isrecursive);
 
 		if (lines > maxlines) lines = maxlines;
 
-		display_nodes(intcursor - intstart + 1,
+		display_nodes(cursor_line - start_line + 1,
 			      lines,
 			      root_node,
-			      intcursor + 1,
-			      intcursor,
+			      cursor_line + 1,
+			      cursor_line,
 			      tdu_interface_ds);
 		tdu_interface_refresh();
 	}
@@ -510,9 +510,9 @@ tdu_interface_run (node_s *node)
 	int expandlevel;
 
 	root_node = node;
-	intstart = 0;
-	intcursor = 0;
-	prev_intstart = -1;
+	start_line = 0;
+	cursor_line = 0;
+	prev_start_line = -1;
 
 	if (root_node->nkids == 1) {
 		root_node = root_node->kids[0];
@@ -527,7 +527,7 @@ tdu_interface_run (node_s *node)
 	scrollok(tduwin,1);
 	getbegyx(tduwin,by,bx);
 	getmaxyx(tduwin,ey,ex);
-	intlines = ey - by;
+	visible_lines = ey - by;
 
 	tdu_interface_display();
 
@@ -602,7 +602,7 @@ tdu_interface_run (node_s *node)
 		case 'P':
 		case 'p':
 		{
-			node_s *node = find_node_number(root_node,intcursor);
+			node_s *node = find_node_number(root_node,cursor_line);
 			node_s *parent = node ? node->parent : NULL;
 			if (parent) {
 				tdu_hide_cursor();
@@ -650,7 +650,7 @@ tdu_interface_run (node_s *node)
 			break;
 
 		case 12:                    /* C-l */
-			intstart = intcursor - intlines / 2;
+			start_line = cursor_line - visible_lines / 2;
 			tdu_interface_refresh();
 			break;
 
