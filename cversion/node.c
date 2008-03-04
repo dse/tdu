@@ -481,7 +481,7 @@ parse_file (const char *pathname) /* filename, or "-" or NULL for stdin */
 	}
   
 	node = new_node(NULL);
-	node->name = "[root]"; /* no strdup necessary or wanted */
+	node->name = "[root]";	/* no strdup necessary or wanted */
 
 	while (fgets(line,sizeof(line),in)) {
 		sscanf(line,"%ld %[^\n]\n",&size,path);
@@ -490,6 +490,9 @@ parse_file (const char *pathname) /* filename, or "-" or NULL for stdin */
 		++entries;
 		if (show_progress && !(entries % 100))
 			fprintf(stderr,"%ld entries\r",entries);
+	}
+	if (show_progress) {
+		fprintf(stderr, "%ld entries\n", entries);
 	}
 
 	if (in != stdin) {
