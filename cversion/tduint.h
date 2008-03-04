@@ -29,9 +29,6 @@
 extern int THREE_ACS_CHARS;
 extern int USE_ACS_CHARS;
 
-/* miscellaneous defines */
-#define CURSORX 0               /* x position of terminal's cursor */
-
 /* debugging purposes */
 #define FULL_REDRAW 0           /* true => collapse and expand always redraw */
 

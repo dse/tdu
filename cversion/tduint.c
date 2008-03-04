@@ -179,7 +179,7 @@ tdu_hide_cursor ()
 void
 tdu_show_cursor ()
 {
-	wmove(tduwin,cursor_line - start_line, CURSORX);
+	wmove(tduwin,cursor_line - start_line, 0);
 	curs_set(1);
 }
 
