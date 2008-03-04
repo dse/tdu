@@ -51,7 +51,6 @@ int display_nodes(int line, int lines, node_s *node, long nodeline, long cursor)
 int display_nodes_(int line, int lines, node_s *node, long nodeline, long cursor, int level);
 void tdu_hide_cursor(void);
 void tdu_show_cursor(void);
-void tdu_interface_display_node(int line, node_s *node, int level, bool iscursor);
 void tdu_interface_finish(int sig);
 void tdu_interface_refresh(void);
 void tdu_interface_display(void);

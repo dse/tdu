@@ -114,7 +114,17 @@ display_node (int line,         /* line number on screen */
               int level,        /* amount of indentation */
               bool iscursor)    /* display as cursor or not */
 {
-	tdu_interface_display_node(line, node, level, iscursor);	
+	wmove(main_window,line,0);
+	wclrtoeol(main_window);
+
+	if (node) {
+		wprintw_nowrap(main_window,"%11ld ",node->size);
+		display_tree_chars(node,level,1);
+		wprintw_nowrap(main_window,"%s",node->name);
+		if(node->nkids && !node->expanded) {
+			wprintw_nowrap(main_window," ...");
+		}
+	}
 }
 
 /* Generic function to display nodes from a tree on the screen. */
@@ -208,28 +218,6 @@ tdu_show_cursor ()
 	wmove(main_window,cursor_line - start_line, 0);
 	curs_set(1);
 	wrefresh(main_window);
-}
-
-/* tdu interface function to display a specific node (and its "tree
-   branch" characters) on a line on the screen */
-
-void
-tdu_interface_display_node (int line, /* screen line # */
-                            node_s *node,
-                            int level,
-                            bool iscursor)
-{
-	wmove(main_window,line,0);
-	wclrtoeol(main_window);
-
-	if (node) {
-		wprintw_nowrap(main_window,"%11ld ",node->size);
-		display_tree_chars(node,level,1);
-		wprintw_nowrap(main_window,"%s",node->name);
-		if(node->nkids && !node->expanded) {
-			wprintw_nowrap(main_window," ...");
-		}
-	}
 }
 
 void
