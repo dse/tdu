@@ -2,4 +2,5 @@
 
 - bug fix:
 	if an xterm is resized twice, the next key pressed triggers a beep.
+	This is not in the perl version of tdu.
 
