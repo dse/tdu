@@ -57,11 +57,11 @@ void tdu_interface_refresh(void);
 void tdu_interface_display(void);
 void tdu_interface_expand(int levels, int redraw);
 void tdu_interface_collapse(int redraw);
-void tdu_interface_moveup(int n);
-void tdu_interface_movedown(int n);
-void tdu_interface_setcursor(int n);
-void tdu_interface_pageup(void);
-void tdu_interface_pagedown(void);
+void tdu_interface_move_up(int n);
+void tdu_interface_move_down(int n);
+void tdu_interface_move_to(int n);
+void tdu_interface_page_up(void);
+void tdu_interface_page_down(void);
 void tdu_interface_sort(node_sort_fp fp, bool reverse, bool isrecursive);
 void tdu_interface_run(node_s *node);
 

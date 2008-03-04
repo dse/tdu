@@ -393,35 +393,35 @@ tdu_interface_collapse (int redraw)
 }
 
 void
-tdu_interface_moveup (int n)
+tdu_interface_move_up (int n)
 {
 	cursor_line -= n;
 	tdu_interface_refresh();
 }
 
 void
-tdu_interface_movedown (int n)
+tdu_interface_move_down (int n)
 {
 	cursor_line += n;
 	tdu_interface_refresh();
 }
 
 void
-tdu_interface_setcursor (int n)
+tdu_interface_move_to (int n)
 {
 	cursor_line = n;
 	tdu_interface_refresh();
 }
 
 void
-tdu_interface_pageup ()
+tdu_interface_page_up ()
 {
 	cursor_line -= (visible_lines - 1);
 	tdu_interface_refresh();
 }
 
 void
-tdu_interface_pagedown ()
+tdu_interface_page_down ()
 {
 	cursor_line += (visible_lines - 1);
 	tdu_interface_refresh();
@@ -590,7 +590,7 @@ tdu_interface_run (node_s *node)
 		case KEY_PREVIOUS:
 		case KEY_UP:
 			tdu_hide_cursor();
-			tdu_interface_moveup(1);
+			tdu_interface_move_up(1);
 			break;
 
 		case 14:                    /* C-n */
@@ -599,39 +599,39 @@ tdu_interface_run (node_s *node)
 		case KEY_NEXT:
 		case KEY_DOWN:
 			tdu_hide_cursor();
-			tdu_interface_movedown(1);
+			tdu_interface_move_down(1);
 			break;
 
 		case '<':
 		case KEY_HOME:
 			tdu_hide_cursor();
-			tdu_interface_setcursor(0);
+			tdu_interface_move_to(0);
 			break;
 
 		case '>':
 		case KEY_END:
 			tdu_hide_cursor();
-			tdu_interface_setcursor(root_node->expanded - 1);
+			tdu_interface_move_to(root_node->expanded - 1);
 			break;
 
 		case KEY_SPREVIOUS:
 			tdu_hide_cursor();
-			tdu_interface_moveup(10);
+			tdu_interface_move_up(10);
 			break;
 
 		case KEY_SNEXT:
 			tdu_hide_cursor();
-			tdu_interface_movedown(10);
+			tdu_interface_move_down(10);
 			break;
 
 		case KEY_PPAGE:
 			tdu_hide_cursor();
-			tdu_interface_pageup();
+			tdu_interface_page_up();
 			break;
 
 		case KEY_NPAGE:
 			tdu_hide_cursor();
-			tdu_interface_pagedown();
+			tdu_interface_page_down();
 			break;
 
 		case 'P':
@@ -641,7 +641,7 @@ tdu_interface_run (node_s *node)
 			node_s *parent = node ? node->parent : NULL;
 			if (parent) {
 				tdu_hide_cursor();
-				tdu_interface_setcursor(find_node_number_in(parent,root_node));
+				tdu_interface_move_to(find_node_number_in(parent,root_node));
 			}
 			break;
 		}
