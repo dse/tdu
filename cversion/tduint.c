@@ -32,6 +32,18 @@
 
 /*****************************************************************************/
 
+node_s *root_node;		/* root node of tree being displayed */
+int cursor_line;		/* line # in tree where "cursor" is located */
+int start_line;			/* line # in tree where top line on screen is
+				   located */
+int prev_start_line;		/* value of start_line when screen was
+				   refreshed */
+int visible_lines;		/* # lines on screen */
+WINDOW *tdu_window;
+
+WINDOW *main_window;
+WINDOW *status_window;
+
 /* fake line-drawing characters to display */
 static char *tree_chars_string[] = {
 	"`- ",                        /* IAM_LAST       == 0 */
@@ -41,6 +53,8 @@ static char *tree_chars_string[] = {
 };
 
 int USE_ACS_CHARS = 1;
+
+/*****************************************************************************/
 
 /* Generic function to display "tree branch" characters for a node and
    its parents. */
@@ -64,7 +78,30 @@ display_tree_chars (node_s *node,   /* caller specifies node being displayed;
 			(thisisit
 			 ? (node->islastkid ? IAM_LAST : IAM_NOTLAST)
 			 : (node->islastkid ? PARENT_LAST : PARENT_NOTLAST));
-		tdu_interface_display_tree_chars(tc);
+		if (USE_ACS_CHARS) {
+			switch (tc) {
+			case IAM_LAST:
+				waddch_custom(main_window,ACS_LLCORNER);
+				waddch_custom(main_window,ACS_HLINE);
+				break;
+			case IAM_NOTLAST:
+				waddch_custom(main_window,ACS_LTEE);
+				waddch_custom(main_window,ACS_HLINE);
+				break;
+			case PARENT_LAST:
+				waddch_custom(main_window,' ');
+				waddch_custom(main_window,' ');
+				break;
+			case PARENT_NOTLAST:
+				waddch_custom(main_window,ACS_VLINE);
+				waddch_custom(main_window,' ');
+				break;
+			}
+			waddch_custom(main_window,' ');
+		}
+		else {
+			wprintw_custom(main_window, tree_chars_string[tc]);
+		}
 	}
 }
 
@@ -159,21 +196,6 @@ display_nodes_ (int line,       /* starting line number on screen */
 	return ret;
 }
 
-/*****************************************************************************/
-/* tdu interface functions */
-
-node_s *root_node;		/* root node of tree being displayed */
-int cursor_line;		/* line # in tree where "cursor" is located */
-int start_line;			/* line # in tree where top line on screen is
-				   located */
-int prev_start_line;		/* value of start_line when screen was
-				   refreshed */
-int visible_lines;		/* # lines on screen */
-WINDOW *tdu_window;
-
-WINDOW *main_window;
-WINDOW *status_window;
-
 void
 tdu_hide_cursor ()
 {
@@ -206,37 +228,6 @@ tdu_interface_display_node (int line, /* screen line # */
 		if(node->nkids && !node->expanded) {
 			wprintw_custom(main_window," ...");
 		}
-	}
-}
-
-/* tdu interface function used to display a node's "tree branch"
-   characters */
-
-void
-tdu_interface_display_tree_chars (tree_chars_enum tc)
-{
-	if (USE_ACS_CHARS) {
-		switch (tc) {
-		case IAM_LAST:
-			waddch_custom(main_window,ACS_LLCORNER);
-			waddch_custom(main_window,ACS_HLINE);
-			break;
-		case IAM_NOTLAST:
-			waddch_custom(main_window,ACS_LTEE);
-			waddch_custom(main_window,ACS_HLINE);
-			break;
-		case PARENT_LAST:
-			waddch_custom(main_window,' ');
-			waddch_custom(main_window,' ');
-			break;
-		case PARENT_NOTLAST:
-			waddch_custom(main_window,ACS_VLINE);
-			waddch_custom(main_window,' ');
-			break;
-		}
-		waddch_custom(main_window,' ');
-	} else {
-		wprintw_custom(main_window, tree_chars_string[tc]);
 	}
 }
 
