@@ -43,7 +43,7 @@ typedef enum tree_chars {
 } tree_chars_enum;
 
 void display_tree_chars (node_s *node, int levelsleft, int thisisit);
-void display_node (int line, node_s *node, int level, bool iscursor);
+void display_node (int line, node_s *node, int level);
 int display_nodes (int line, int lines, node_s *node, long nodeline, long cursor);
 int display_nodes_ (int line, int lines, node_s *node, long nodeline, long cursor, int level);
 void tdu_hide_cursor (void);

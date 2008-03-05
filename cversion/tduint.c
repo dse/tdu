@@ -31,14 +31,10 @@
 #include <pty.h>
 #include <string.h>
 
-/*****************************************************************************/
-
 node_s *root_node;		/* root node of tree being displayed */
 int cursor_line;		/* line # in tree where "cursor" is located */
-int start_line;			/* line # in tree where top line on screen is
-				   located */
-int prev_start_line;		/* value of start_line when screen was
-				   refreshed */
+int start_line;			/* line # in tree located at top of screen */
+int prev_start_line;		/* used in updating after cursor is moved */
 int visible_lines;		/* # lines on screen */
 
 WINDOW *tdu_window;	       
@@ -54,8 +50,6 @@ static char *tree_chars_string[] = {
 
 int ascii_tree_chars = 0;
 int show_descendents = 0;
-
-/*****************************************************************************/
 
 /* Generic function to display "tree branch" characters for a node and
    its parents. */
@@ -108,8 +102,7 @@ display_tree_chars (node_s *node,   /* programs specify node to display */
 void
 display_node (int line,         /* line number on screen */
               node_s *node,     /* node to display */
-              int level,        /* amount of indentation */
-              bool iscursor)    /* display as cursor or not */
+              int level)        /* amount of indentation */
 {
 	wmove(main_window, line, 0);
 	wclrtoeol(main_window);
@@ -140,7 +133,7 @@ display_nodes (int line,        /* starting line number on screen */
 	line += nodes;
 	lines -= nodes;
 	for (; lines > 0; ++line, --lines) {
-		display_node(line, NULL, 0, 0);
+		display_node(line, NULL, 0);
 	}
 	return nodes;
 }
@@ -163,7 +156,7 @@ display_nodes_ (int line,       /* starting line number on screen */
 	/* Do we start displaying the tree at this node? */
 	
 	if (nodeline == 0) {
-		display_node(line, node, level, nodeline == cursor);
+		display_node(line, node, level);
 		++ret; ++line; --lines;   /* a line was displayed */
 		--cursor; /* one node closer to cursor */
 	}
