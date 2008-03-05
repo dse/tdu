@@ -23,9 +23,6 @@
 #define TDU_H
 /*****************************************************************************/
 
-/* Each node's list of children is allocated in blocks of this many. */
-#define KIDSATATIME 256
-
 #define TDU_VERSION "2008-03-04"
 
 #define TDU_COPYRIGHT_INFO \
