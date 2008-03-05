@@ -580,16 +580,18 @@ tdu_interface_help (char *message)
 
 		wprintw_nowrap(main_window, " [maxy = %d; y = %d]", maxy, y);
 
-		if (y >= (maxy - 1) && *message) {
-			wrefresh(main_window);
-			status_line_message("More... (press any key)");
-			wgetch(main_window);
-			status_line_message(NULL);
-			werase(main_window);
-			wmove(main_window, 0, 0);
-		}
-		else {
-			waddstr(main_window, "\n");
+		if (*message) {
+			if (y >= (maxy - 1)) {
+				wrefresh(main_window);
+				status_line_message("More... (press any key)");
+				wgetch(main_window);
+				status_line_message(NULL);
+				werase(main_window);
+				wmove(main_window, 0, 0);
+			}
+			else {
+				waddstr(main_window, "\n");
+			}
 		}
 	}
 	wrefresh(main_window);
