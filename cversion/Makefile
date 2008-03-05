@@ -32,6 +32,10 @@ $(PROG): $(OBJS)
 	{ >&2 echo "Install the glib 2.0 development package."; exit 1; }
 	$(CC) `pkg-config --cflags glib-2.0` -Wall $(CFLAGS) -c $< -o $@
 
+.PHONY: splint
+splint:
+	splint -posix-lib `pkg-config --cflags glib-2.0` *.c *.h
+
 install = /usr/bin/install
 prefix = /usr/local
 install: $(PROG)
