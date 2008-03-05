@@ -308,11 +308,7 @@ tdu_interface_expand (int levels, int redraw)
 {
 	node_s *n = find_node_numbered(root_node,cursor_line);
 
-	if (FULL_REDRAW) {
-		redraw = 1;
-	} else {
-		if (!redraw && (levels > 1)) redraw = 1;
-	}
+	if (!redraw && (levels > 1)) redraw = 1;
 
 	if (n) {
 		long scrolllines = expand_tree(n,levels);
@@ -329,7 +325,7 @@ tdu_interface_expand (int levels, int redraw)
 						      root_node,cursor_line,cursor_line);
 				} else {
 					tdu_interface_refresh();
-					insdelln(scrolllines);
+					winsdelln(main_window, scrolllines);
 					display_nodes(cursor_line - start_line,scrolllines + 1,
 						      root_node,cursor_line,cursor_line);
 				}
@@ -347,10 +343,6 @@ void
 tdu_interface_collapse (int redraw)
 {
 	node_s *n = find_node_numbered(root_node,cursor_line);
-
-	if (FULL_REDRAW) {
-		redraw = 1;
-	}
 
 	if (n) {
 		long scrolllines = collapse_tree(n);

@@ -28,9 +28,6 @@
 
 extern int USE_ACS_CHARS;
 
-/* debugging purposes */
-#define FULL_REDRAW 0           /* true => collapse and expand always redraw */
-
 /* different types of "tree branches" that can be displayed" */
 typedef enum tree_chars {
 	IAM_LAST,		/* lower-left corner of box --- printed just
