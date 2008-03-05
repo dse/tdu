@@ -61,8 +61,6 @@ typedef struct node {
 /* Type of function used to qsort the children of a tree node */
 typedef int (*node_sort_fp)(const node_s *,const node_s *);
 
-
-void initialize_node(node_s *node);
 node_s *new_node(const char *name);
 void add_child(node_s *parent, node_s *kid);
 node_s *find_or_create_child(node_s *node, const char *name);

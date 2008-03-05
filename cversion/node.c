@@ -30,11 +30,15 @@
 #include <curses.h>
 #include <glib.h>
 
-/* as nodes are created this is used to initialize their structures */
-void
-initialize_node (node_s *node)
+/* Create a new node and initialize its contents. */
+node_s *			/* returns pointer to new node */
+new_node (const char *name)	/* if not NULL, initialize node's name */
 {
-	node->name = NULL;
+	node_s *node = (node_s *)malloc(sizeof(node_s));
+	if (name) 
+		node->name = strdup(name);
+	else
+		node->name = NULL;
 	node->size = -1;	/* to be computed later unless specified */
 	node->kids = NULL;
 	node->nkids = 0;
@@ -45,15 +49,6 @@ initialize_node (node_s *node)
 	node->is_last_child = 1;
 	node->origindex = -1;
 	node->kids_by_name = NULL;
-}
-
-/* Create a new node and initialize its contents. */
-node_s *			/* returns pointer to new node */
-new_node (const char *name)	/* if not NULL, initialize node's name */
-{
-	node_s *node = (node_s *)malloc(sizeof(node_s));
-	initialize_node(node);
-	if (name) node->name = strdup(name);
 	return node;
 }
 
