@@ -39,17 +39,16 @@ int start_line;			/* line # in tree where top line on screen is
 int prev_start_line;		/* value of start_line when screen was
 				   refreshed */
 int visible_lines;		/* # lines on screen */
-WINDOW *tdu_window;
 
+WINDOW *tdu_window;	       
 WINDOW *main_window;
 WINDOW *status_window;
 
-/* fake line-drawing characters to display */
 static char *tree_chars_string[] = {
-	"`- ",                        /* IAM_LAST       == 0 */
-	"+- ",                        /* IAM_NOTLAST    == 1 */
-	"   ",                        /* PARENT_LAST    == 2 */
-	"|  "                         /* PARENT_NOTLAST == 3 */
+	"`- ",			/* IAM_LAST       == 0 */
+	"+- ",			/* IAM_NOTLAST    == 1 */
+	"   ",			/* PARENT_LAST    == 2 */
+	"|  "			/* PARENT_NOTLAST == 3 */
 };
 
 int USE_ACS_CHARS = 1;
@@ -59,15 +58,11 @@ int USE_ACS_CHARS = 1;
 /* Generic function to display "tree branch" characters for a node and
    its parents. */
 
-/* === THIS IS A RECURSIVE FUNCTION. === */
 void
-display_tree_chars (node_s *node,   /* caller specifies node being displayed;
-                                       we go up the chain of parents */
-                    int levelsleft, /* max # "tree branch" levels to display,
-                                       or -1 to go all the way */
-                    int thisisit)   /* flag: is this child we're displaying? */
+display_tree_chars (node_s *node,   /* programs specify node to display */
+                    int levelsleft, /* # levels to go up. */
+                    int thisisit)   /* is this the node we're displaying? */
 {
-	/* first display branches related to parents */
 	if (node->parent && levelsleft > 0) {
 		display_tree_chars(node->parent,
 				   (levelsleft < 0) ? -1 : (levelsleft - 1),
