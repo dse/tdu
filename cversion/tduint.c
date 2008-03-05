@@ -634,6 +634,11 @@ tdu_interface_keypress (int key)
 		tdu_interface_help(TDU_ONLINE_HELP);
 		break;
 
+	case 'c':
+	case 'C':
+		tdu_interface_help(TDU_COPYRIGHT_INFO);
+		break;
+
 	case 16:                    /* C-p */
 	case 'K':
 	case 'k':

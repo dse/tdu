@@ -40,15 +40,6 @@ struct option long_options[] = {
 	{ NULL,         0, NULL, 0 }
 };
 
-#define TDU_VERSION_MESSAGE \
-	"\n" \
-	"This is tdu version " TDU_VERSION ".  Copyright (C) 2004 Darren Stuart Embry.\n\n" \
-	"This program may be copied under the terms of the GNU General Public License:\n" \
-	"  http://dse.webonastick.com/tdu/copying.txt\n\n"		\
-	"Documentation and other information about this program can be found here:\n" \
-	"  http://dse.webonastick.com/tdu/\n\n"				\
-	"Run \"tdu -h\" for a usage summary for this program.\n\n"
-
 #define TDU_USAGE_MESSAGE \
 	"usage: [ du [OPTION ...] [FILE ...] | ] %s [OPTION ...] [FILE ...]\n" \
 	"  -h, --help        display this message\n" \
@@ -58,7 +49,7 @@ struct option long_options[] = {
 void
 version_exit (int status)
 {
-	fprintf(stderr, TDU_VERSION_MESSAGE);
+	fprintf(stderr, TDU_COPYRIGHT_INFO);
 	exit(status);
 }
 

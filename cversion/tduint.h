@@ -79,8 +79,8 @@ void tdu_interface_run(node_s *node);
 "  d,D   sort,reverse sort by number of descendents\n" \
 "  =s, =S, =u, =U, -n, =N   sort recursively\n" \
 "MISCELLANY:\n" \
-"  #         show/hide number of descendents\n" \
-"  A         toggle ASCII line-drawing characters\n" \
+"  #         show/hide number of descendents (NOT YET DONE)\n" \
+"  A         toggle ASCII line-drawing characters (NOT YET DONE)\n" \
 "  Ctrl-L    recenter line\n" \
 "  Ctrl-R    refresh display\n" \
 "  q,x,ESC   quit\n" \
