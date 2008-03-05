@@ -92,7 +92,7 @@ get_options (int argc, char **argv)
 				"Please use dugroup, a separate program.\n");
 			exit(1);
 		case 'A':
-			USE_ACS_CHARS = 0;
+			ascii_tree_chars = 1;
 			break;
 		case 'h':
 			usage_exit(0);

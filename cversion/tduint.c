@@ -52,7 +52,7 @@ static char *tree_chars_string[] = {
 	"|  "			/* PARENT_NOTLAST == 3 */
 };
 
-int USE_ACS_CHARS = 1;
+int ascii_tree_chars = 0;
 int show_descendents = 0;
 
 /*****************************************************************************/
@@ -77,7 +77,10 @@ display_tree_chars (node_s *node,   /* programs specify node to display */
 			    ? IAM_LAST : IAM_NOTLAST)
 			 : (node->is_last_child
 			    ? PARENT_LAST : PARENT_NOTLAST));
-		if (USE_ACS_CHARS) {
+		if (ascii_tree_chars) {
+			wprintw_nowrap(main_window, tree_chars_string[tc]);
+		}
+		else {
 			switch (tc) {
 			case IAM_LAST:
 				waddch_nowrap(main_window,ACS_LLCORNER);
@@ -97,9 +100,6 @@ display_tree_chars (node_s *node,   /* programs specify node to display */
 				break;
 			}
 			waddch_nowrap(main_window,' ');
-		}
-		else {
-			wprintw_nowrap(main_window, tree_chars_string[tc]);
 		}
 	}
 }
@@ -754,7 +754,7 @@ tdu_interface_keypress (int key)
 
 	case 'a':
 	case 'A':
-		USE_ACS_CHARS = !USE_ACS_CHARS;
+		ascii_tree_chars = !ascii_tree_chars;
 		prev_start_line = -1;
 		tdu_interface_display();
 		break;

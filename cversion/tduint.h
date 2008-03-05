@@ -26,7 +26,7 @@
 #include "tdu.h"
 #include "node.h"
 
-extern int USE_ACS_CHARS;
+extern int ascii_tree_chars;
 
 /* different types of "tree branches" that can be displayed" */
 typedef enum tree_chars {
