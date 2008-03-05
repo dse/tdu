@@ -339,7 +339,7 @@ node_s *
 find_node_numbered (node_s *node, long nodeline)
 {
 	int i; long l;
-	if(node && nodeline >= 0 && nodeline < (1 + node->expanded)) {
+	if (node && nodeline >= 0 && nodeline < (1 + node->expanded)) {
 		if (nodeline == 0) return node;
 		--nodeline;
 		if (node->expanded && node->children && node->nchildren) {
@@ -365,26 +365,25 @@ find_node_numbered (node_s *node, long nodeline)
 long
 find_node_number_in (node_s *node, node_s *root)
 {
-	if (node) {
-		long n = 0;
-		int i;
-		while (1) {
-			node_s *parent = node->parent;
-			if (node == root || parent == NULL) /* destination? */
-				return n;
-      
-			++n;
-			for (i = 0; (i < parent->nchildren) && 
-				     (parent->children[i] != node); ++i)
-				n += (1 + parent->children[i]->expanded);
-      
-			if (i == parent->nchildren) return -1; /* SHOULDN'T HAPPEN */
+	if (!node) return -1;
 
-			node = parent;
-		}
-		return n;
+	long n = 0;
+	int i;
+	while (1) {
+		node_s *parent = node->parent;
+		if (node == root || parent == NULL) /* destination? */
+			return n;
+
+		++n;
+		for (i = 0; (i < parent->nchildren) && 
+			     (parent->children[i] != node); ++i)
+			n += (1 + parent->children[i]->expanded);
+
+		if (i == parent->nchildren) return -1; /* SHOULDN'T HAPPEN */
+
+		node = parent;
 	}
-	return -1;
+	return n;
 }
 
 /*****************************************************************************/
@@ -443,25 +442,26 @@ tree_sort (node_s *node,	/* node whose children to sort */
 	   bool reverse,	/* sort reverse? */
 	   bool isrecursive)	/* go recursive? */
 {
-	if (node && node->children && node->nchildren) {
-		int i;
-		if (!fp) fp = node_cmp_unsort; /* provide a default
-						  incase fp == NULL */
-		node_sort = fp;
-		node_sort_rev = reverse;
-		qsort(node->children, node->nchildren, sizeof(node_s *), node_qsort_cmp);
+	int i;
 
-		/* is_last_child values of children may have to be reinitialized */
-		for (i = 0; i < (node->nchildren-1); ++i)
-			node->children[i]->is_last_child = 0;
-		node->children[i]->is_last_child = 1;
+	if (!(node && node->children && node->nchildren)) return;
 
-		/* if operating recursively, work on the children now */
-		if (isrecursive) {
-			for (i = 0; i < node->nchildren; ++i) {
-				tree_sort(node->children[i], fp,
-					  reverse, isrecursive);
-			}
+	if (!fp) fp = node_cmp_unsort; /* provide a default
+					  incase fp == NULL */
+	node_sort = fp;
+	node_sort_rev = reverse;
+	qsort(node->children, node->nchildren, sizeof(node_s *), node_qsort_cmp);
+
+	/* is_last_child values of children may have to be reinitialized */
+	for (i = 0; i < (node->nchildren-1); ++i)
+		node->children[i]->is_last_child = 0;
+	node->children[i]->is_last_child = 1;
+
+	/* if operating recursively, work on the children now */
+	if (isrecursive) {
+		for (i = 0; i < node->nchildren; ++i) {
+			tree_sort(node->children[i], fp,
+				  reverse, isrecursive);
 		}
 	}
 }
@@ -484,9 +484,10 @@ parse_file (const char *pathname) /* filename, or "-" or NULL for stdin */
 
 	if (!pathname || !strcmp(pathname, "-")) {
 		in = stdin;
-	} else {
+	}
+	else {
 		in = fopen(pathname, "r");
-		if(!in) {
+		if (!in) {
 			fprintf(stderr, "Cannot open %s: %s\n",
 				pathname, strerror(errno));
 			return NULL; 

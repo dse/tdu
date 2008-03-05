@@ -124,7 +124,8 @@ main (int argc, char **argv)
 
 	if (NULL == (options = get_options(argc, argv))) {
 		--argc, ++argv;
-	} else {
+	} 
+	else {
 		argc -= options->optind;
 		argv += options->optind;
 	}
