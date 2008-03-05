@@ -73,7 +73,10 @@ get_options (int argc, char **argv)
 	int c;
 
 	options = (options_s *)malloc(sizeof(options_s));
-	if (options == NULL) return NULL;
+	if (options == NULL) {
+		perror("get_options: malloc");
+		exit(1);
+	}
 	options->help = 1;
 	options->optind = -1;
 	options->parse_only = 0;
@@ -113,16 +116,14 @@ get_options (int argc, char **argv)
 	return options;
 }
 
-/*****************************************************************************/
-
 int
 main (int argc, char **argv)
 {
 	node_s *node;
 	options_s *options;
 
-	if (NULL == (options = get_options(argc,argv))) {
-		--argc,++argv;
+	if (NULL == (options = get_options(argc, argv))) {
+		--argc, ++argv;
 	} else {
 		argc -= options->optind;
 		argv += options->optind;
@@ -135,7 +136,7 @@ main (int argc, char **argv)
 	}
 
 	if (node) {
-		expand_tree(node,1);
+		expand_tree(node, 1);
 		tdu_interface_run(node);
 	}
 

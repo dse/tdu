@@ -59,29 +59,29 @@ typedef struct node {
 } node_s;
 
 /* Type of function used to qsort the children of a tree node */
-typedef int (*node_sort_fp)(const node_s *,const node_s *);
+typedef int (*node_sort_fp)(const node_s *, const node_s *);
 
-node_s *new_node(const char *name);
-void add_child(node_s *parent, node_s *child);
-node_s *find_or_create_child(node_s *node, const char *name);
-void add_node(node_s *root, const char *pathname, long size);
-long fix_tree_sizes(node_s *node);
-long fix_tree_descendents(node_s *node);
-void cleanup_tree(node_s *node);
-void dump_tree(node_s *node, int level);
-long expand_tree(node_s *node, int level);
-long expand_tree_(node_s *node, int level);
-long collapse_tree(node_s *node);
-void collapse_tree_(node_s *node);
-node_s *find_node_numbered(node_s *node, long nodeline);
-long find_node_number_in(node_s *node, node_s *root);
-int node_cmp_size(const node_s *a, const node_s *b);
-int node_cmp_unsort(const node_s *a, const node_s *b);
-int node_cmp_name(const node_s *a, const node_s *b);
-int node_cmp_descendents(const node_s *a, const node_s *b);
-int node_qsort_cmp(const void *aa, const void *bb);
-void tree_sort(node_s *node, node_sort_fp fp, bool reverse, bool isrecursive);
-node_s *parse_file(const char *pathname);
+node_s *new_node (const char *name);
+void add_child (node_s *parent, node_s *child);
+node_s *find_or_create_child (node_s *node, const char *name);
+void add_node (node_s *root, const char *pathname, long size);
+long fix_tree_sizes (node_s *node);
+long fix_tree_descendents (node_s *node);
+void cleanup_tree (node_s *node);
+void dump_tree (node_s *node, int level);
+long expand_tree (node_s *node, int level);
+long expand_tree_ (node_s *node, int level);
+long collapse_tree (node_s *node);
+void collapse_tree_ (node_s *node);
+node_s *find_node_numbered (node_s *node, long nodeline);
+long find_node_number_in (node_s *node, node_s *root);
+int node_cmp_size (const node_s *a, const node_s *b);
+int node_cmp_unsort (const node_s *a, const node_s *b);
+int node_cmp_name (const node_s *a, const node_s *b);
+int node_cmp_descendents (const node_s *a, const node_s *b);
+int node_qsort_cmp (const void *aa, const void *bb);
+void tree_sort (node_s *node, node_sort_fp fp, bool reverse, bool isrecursive);
+node_s *parse_file (const char *pathname);
 
 /*****************************************************************************/
 #endif /* NODE_H */

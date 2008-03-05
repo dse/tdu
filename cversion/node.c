@@ -119,7 +119,7 @@ find_or_create_child (node_s *node, const char *name)
 		}
 	}
 	if ((child = new_node(name)) != NULL) {
-		add_child(node,child);
+		add_child(node, child);
 		return child;
 	}
 	return NULL;
@@ -231,16 +231,16 @@ dump_tree (node_s *node, int level)
 		return;
 
 	int i;
-	printf("%10ld %5lda %5lde ",node->size,
+	printf("%10ld %5lda %5lde ", node->size,
 	       node->descendents,
 	       node->expanded);
 	if (level)
 		for (i = 0; i < level; ++i) 
-			fputs("  ",stdout);
-	printf("%s\n",node->name);
+			fputs("  ", stdout);
+	printf("%s\n", node->name);
 	if (node->children && node->nchildren) {
 		for(i = 0; i < node->nchildren; ++i) {
-			dump_tree(node->children[i],level+1);
+			dump_tree(node->children[i], level+1);
 		}
 	}
 }
@@ -254,7 +254,7 @@ expand_tree (node_s *node,	/* tree to expand */
 	     int level)		/* #levels deep, or -1 to expand fully */
 {
 	node_s *p;
-	long ret = expand_tree_(node,level);
+	long ret = expand_tree_(node, level);
 
 	/* increment each ancestor's expand values once the work is
 	   complete.  For performance reasons this is not done
@@ -286,7 +286,7 @@ expand_tree_ (node_s *node,	/* tree to expand */
 	if (level > 0) level -= 1;	/* how many levels left? */
 	if (level) {
 		for (i = 0; i < node->nchildren; ++i) {
-			expanded = expand_tree_(node->children[i],level);
+			expanded = expand_tree_(node->children[i], level);
 			ret += expanded;
 			node->expanded += expanded;
 		}
@@ -336,7 +336,7 @@ collapse_tree_ (node_s *node)	/* ptr to tree to collapse */
    in display_nodes_() if you can't figure out how this works. */
 
 node_s *
-find_node_numbered (node_s *node,long nodeline)
+find_node_numbered (node_s *node, long nodeline)
 {
 	int i; long l;
 	if(node && nodeline >= 0 && nodeline < (1 + node->expanded)) {
@@ -349,7 +349,7 @@ find_node_numbered (node_s *node,long nodeline)
 				nodeline -= l;
 				++i;
 			}
-			return find_node_numbered(node->children[i],nodeline);
+			return find_node_numbered(node->children[i], nodeline);
 		}
 	}
 	return NULL;
@@ -393,25 +393,25 @@ find_node_number_in (node_s *node, node_s *root)
 /* sort comparison functions for tree nodes */
 
 int 
-node_cmp_size(const node_s *a,const node_s *b) 
+node_cmp_size (const node_s *a, const node_s *b) 
 {
 	return (a->size - b->size);
 }
 
 int
-node_cmp_unsort(const node_s *a,const node_s *b)
+node_cmp_unsort (const node_s *a, const node_s *b)
 {
 	return (a->origindex - b->origindex);
 }
 
 int
-node_cmp_name(const node_s *a,const node_s *b)
+node_cmp_name (const node_s *a, const node_s *b)
 {
-	return strcmp(a->name,b->name); 
+	return strcmp(a->name, b->name); 
 }
 
 int
-node_cmp_descendents(const node_s *a,const node_s *b)
+node_cmp_descendents (const node_s *a, const node_s *b)
 {
 	return (a->descendents - b->descendents);
 }
@@ -426,11 +426,11 @@ static bool node_sort_rev = 0;
    to reverse or normally sort. */
 
 int
-node_qsort_cmp(const void *aa,const void *bb) 
+node_qsort_cmp (const void *aa, const void *bb) 
 {
 	const node_s *a = *(const node_s **)aa;
 	const node_s *b = *(const node_s **)bb;
-	int ret = node_sort(a,b);
+	int ret = node_sort(a, b);
 	if (node_sort_rev) ret = -ret;
 	return ret;
 }
@@ -449,7 +449,7 @@ tree_sort (node_s *node,	/* node whose children to sort */
 						  incase fp == NULL */
 		node_sort = fp;
 		node_sort_rev = reverse;
-		qsort(node->children,node->nchildren,sizeof(node_s *),node_qsort_cmp);
+		qsort(node->children, node->nchildren, sizeof(node_s *), node_qsort_cmp);
 
 		/* is_last_child values of children may have to be reinitialized */
 		for (i = 0; i < (node->nchildren-1); ++i)
@@ -460,7 +460,7 @@ tree_sort (node_s *node,	/* node whose children to sort */
 		if (isrecursive) {
 			for (i = 0; i < node->nchildren; ++i) {
 				tree_sort(node->children[i], fp,
-					  reverse,isrecursive);
+					  reverse, isrecursive);
 			}
 		}
 	}
@@ -482,13 +482,13 @@ parse_file (const char *pathname) /* filename, or "-" or NULL for stdin */
 	long entries = 0;
 	int show_progress = isatty(fileno(stderr));
 
-	if (!pathname || !strcmp(pathname,"-")) {
+	if (!pathname || !strcmp(pathname, "-")) {
 		in = stdin;
 	} else {
-		in = fopen(pathname,"r");
+		in = fopen(pathname, "r");
 		if(!in) {
-			fprintf(stderr,"Cannot open %s: %s\n",
-				pathname,strerror(errno));
+			fprintf(stderr, "Cannot open %s: %s\n",
+				pathname, strerror(errno));
 			return NULL; 
 		}
 	}
@@ -496,13 +496,13 @@ parse_file (const char *pathname) /* filename, or "-" or NULL for stdin */
 	node = new_node(NULL);
 	node->name = "[root]";	/* no strdup necessary or wanted */
 
-	while (fgets(line,sizeof(line),in)) {
-		sscanf(line,"%ld %[^\n]\n",&size,path);
-		add_node(node,path,size);
+	while (fgets(line, sizeof(line), in)) {
+		sscanf(line, "%ld %[^\n]\n", &size, path);
+		add_node(node, path, size);
 		/* display progress */
 		++entries;
 		if (show_progress && !(entries % 100))
-			fprintf(stderr,"%ld entries\r",entries);
+			fprintf(stderr, "%ld entries\r", entries);
 	}
 	if (show_progress) {
 		fprintf(stderr, "%ld entries\n", entries);

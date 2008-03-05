@@ -70,37 +70,35 @@ display_tree_chars (node_s *node,   /* programs specify node to display */
 				   (levelsleft < 0) ? -1 : (levelsleft - 1),
 				   0);
 	}
-	if (levelsleft) {
-		tree_chars_enum tc =
-			(thisisit
-			 ? (node->is_last_child
-			    ? IAM_LAST : IAM_NOTLAST)
-			 : (node->is_last_child
-			    ? PARENT_LAST : PARENT_NOTLAST));
-		if (ascii_tree_chars) {
-			wprintw_nowrap(main_window, tree_chars_string[tc]);
+	if (!levelsleft) return;
+
+	tree_chars_enum tc =
+		(thisisit
+		 ? (node->is_last_child ? IAM_LAST : IAM_NOTLAST)
+		 : (node->is_last_child ? PARENT_LAST : PARENT_NOTLAST));
+	if (ascii_tree_chars) {
+		wprintw_nowrap(main_window, tree_chars_string[tc]);
+	}
+	else {
+		switch (tc) {
+		case IAM_LAST:
+			waddch_nowrap(main_window, ACS_LLCORNER);
+			waddch_nowrap(main_window, ACS_HLINE);
+			break;
+		case IAM_NOTLAST:
+			waddch_nowrap(main_window, ACS_LTEE);
+			waddch_nowrap(main_window, ACS_HLINE);
+			break;
+		case PARENT_LAST:
+			waddch_nowrap(main_window, ' ');
+			waddch_nowrap(main_window, ' ');
+			break;
+		case PARENT_NOTLAST:
+			waddch_nowrap(main_window, ACS_VLINE);
+			waddch_nowrap(main_window, ' ');
+			break;
 		}
-		else {
-			switch (tc) {
-			case IAM_LAST:
-				waddch_nowrap(main_window,ACS_LLCORNER);
-				waddch_nowrap(main_window,ACS_HLINE);
-				break;
-			case IAM_NOTLAST:
-				waddch_nowrap(main_window,ACS_LTEE);
-				waddch_nowrap(main_window,ACS_HLINE);
-				break;
-			case PARENT_LAST:
-				waddch_nowrap(main_window,' ');
-				waddch_nowrap(main_window,' ');
-				break;
-			case PARENT_NOTLAST:
-				waddch_nowrap(main_window,ACS_VLINE);
-				waddch_nowrap(main_window,' ');
-				break;
-			}
-			waddch_nowrap(main_window,' ');
-		}
+		waddch_nowrap(main_window, ' ');
 	}
 }
 
@@ -113,18 +111,18 @@ display_node (int line,         /* line number on screen */
               int level,        /* amount of indentation */
               bool iscursor)    /* display as cursor or not */
 {
-	wmove(main_window,line,0);
+	wmove(main_window, line, 0);
 	wclrtoeol(main_window);
 
-	if (node) {
-		wprintw_nowrap(main_window,"%11ld ",node->size);
-		if (show_descendents)
-			wprintw_nowrap(main_window,"%11ld ",node->descendents);
-		display_tree_chars(node,level,1);
-		wprintw_nowrap(main_window,"%s",node->name);
-		if(node->nchildren && !node->expanded) {
-			wprintw_nowrap(main_window," ...");
-		}
+	if (!node) return;
+
+	wprintw_nowrap(main_window, "%11ld ", node->size);
+	if (show_descendents)
+		wprintw_nowrap(main_window, "%11ld ", node->descendents);
+	display_tree_chars(node, level, 1);
+	wprintw_nowrap(main_window, "%s", node->name);
+	if(node->nchildren && !node->expanded) {
+		wprintw_nowrap(main_window, " ...");
 	}
 }
 
@@ -138,11 +136,11 @@ display_nodes (int line,        /* starting line number on screen */
                long cursor)     /* line # within tree where cursor is
                                    located */
 {
-	int nodes = display_nodes_(line,lines,node,nodeline,cursor,0);
+	int nodes = display_nodes_(line, lines, node, nodeline, cursor, 0);
 	line += nodes;
 	lines -= nodes;
-	for (; lines > 0; ++line,--lines) {
-		display_node(line,NULL,0,0);
+	for (; lines > 0; ++line, --lines) {
+		display_node(line, NULL, 0, 0);
 	}
 	return nodes;
 }
@@ -159,17 +157,17 @@ display_nodes_ (int line,       /* starting line number on screen */
 {
 	long ret = 0; int i; long l;
 
-	if (!(node && nodeline >= 0 &&
-	      nodeline < (1 + node->expanded) && lines))
-		return 0;
+	if (!(node && nodeline >= 0 && 
+	      nodeline < (1 + node->expanded) && lines)) return 0;
 
 	/* Do we start displaying the tree at this node? */
 	
 	if (nodeline == 0) {
-		display_node(line,node,level,nodeline == cursor);
+		display_node(line, node, level, nodeline == cursor);
 		++ret; ++line; --lines;   /* a line was displayed */
 		--cursor; /* one node closer to cursor */
-	} else {
+	}
+	else {
 		/* skip parent node */
 		--nodeline; /* one node closer to start displaying */
 		--cursor;   /* one node closer to cursor */
@@ -194,7 +192,7 @@ display_nodes_ (int line,       /* starting line number on screen */
 		   from one or more of the next children as well. */
 
 		while (i < node->nchildren && lines > 0) {
-			l = display_nodes_(line,lines,node->children[i],nodeline,cursor,
+			l = display_nodes_(line, lines, node->children[i], nodeline, cursor,
 					   level+1);
 			ret += l; line += l; lines -= l;
 			nodeline = 0; /* continue at top of next 
@@ -216,7 +214,7 @@ tdu_hide_cursor ()
 void
 tdu_show_cursor ()
 {
-	wmove(main_window,cursor_line - start_line, 0);
+	wmove(main_window, cursor_line - start_line, 0);
 	curs_set(1);
 	wrefresh(main_window);
 }
@@ -237,12 +235,10 @@ tdu_interface_refresh ()
 {
 	int lines;
 
-	if (prev_start_line < 0)
-	{
-		display_nodes(0,visible_lines,root_node,start_line,cursor_line);
+	if (prev_start_line < 0) {
+		display_nodes(0, visible_lines, root_node, start_line, cursor_line);
 	}
-	else
-	{
+	else {
 		/* make sure cursor_line is within reasonable range */
 		if (cursor_line < 0)
 			cursor_line = 0;
@@ -266,21 +262,21 @@ tdu_interface_refresh ()
 
 		/* if we scroll too much, just redisplay the whole thing */
 		if (lines <= -visible_lines || lines >= visible_lines)
-			display_nodes(0,visible_lines,root_node,
-				      start_line,cursor_line);
+			display_nodes(0, visible_lines, root_node,
+				      start_line, cursor_line);
 
 		/* do we need to scroll down? */
 		else if (lines < 0) {
-			wscrl(main_window,lines);
-			display_nodes(0,-lines,root_node,
-				      start_line,cursor_line);
+			wscrl(main_window, lines);
+			display_nodes(0, -lines, root_node,
+				      start_line, cursor_line);
 		}
 
 
 		/* do we need to scroll up? */
 		else if (lines > 0) {
-			wscrl(main_window,lines);
-			display_nodes(visible_lines - lines,lines,root_node,
+			wscrl(main_window, lines);
+			display_nodes(visible_lines - lines, lines, root_node,
 				      start_line + visible_lines - lines,
 				      cursor_line);
 		}
@@ -297,7 +293,7 @@ tdu_interface_refresh ()
 void
 tdu_interface_display ()
 {
-	display_nodes(0,visible_lines,root_node,start_line,cursor_line);
+	display_nodes(0, visible_lines, root_node, start_line, cursor_line);
 	tdu_interface_refresh();
 }
 
@@ -309,32 +305,32 @@ tdu_interface_display ()
 void
 tdu_interface_expand (int levels, int redraw)
 {
-	node_s *n = find_node_numbered(root_node,cursor_line);
+	node_s *n = find_node_numbered(root_node, cursor_line);
+	if (!n) return;
 
-	if (!redraw && (levels > 1)) redraw = 1;
+	long scrolllines = expand_tree(n, levels);
+	if (!scrolllines) return;
 
-	if (n) {
-		long scrolllines = expand_tree(n,levels);
-		if (scrolllines) {
-			if (redraw) {
-				display_nodes(cursor_line - start_line,visible_lines - (cursor_line - start_line),
-					      root_node,cursor_line,cursor_line);
-				tdu_interface_refresh();
-			} else {
-				long maxlines = visible_lines - (cursor_line - start_line);
-				
-				if (scrolllines >= maxlines - 1) {
-					display_nodes(cursor_line - start_line,visible_lines - (cursor_line - start_line),
-						      root_node,cursor_line,cursor_line);
-				} else {
-					tdu_interface_refresh();
-					winsdelln(main_window, scrolllines);
-					display_nodes(cursor_line - start_line,scrolllines + 1,
-						      root_node,cursor_line,cursor_line);
-				}
-				tdu_interface_refresh();
-			}
+	if (!redraw && (levels > 1))
+		redraw = 1;
+
+	if (redraw) {
+		display_nodes(cursor_line - start_line, visible_lines - (cursor_line - start_line),
+			      root_node, cursor_line, cursor_line);
+		tdu_interface_refresh();
+	} else {
+		long maxlines = visible_lines - (cursor_line - start_line);
+
+		if (scrolllines >= maxlines - 1) {
+			display_nodes(cursor_line - start_line, visible_lines - (cursor_line - start_line),
+				      root_node, cursor_line, cursor_line);
+		} else {
+			tdu_interface_refresh();
+			winsdelln(main_window, scrolllines);
+			display_nodes(cursor_line - start_line, scrolllines + 1,
+				      root_node, cursor_line, cursor_line);
 		}
+		tdu_interface_refresh();
 	}
 }
 
@@ -345,32 +341,31 @@ tdu_interface_expand (int levels, int redraw)
 void
 tdu_interface_collapse (int redraw)
 {
-	node_s *n = find_node_numbered(root_node,cursor_line);
+	node_s *n = find_node_numbered(root_node, cursor_line);
+	if (!n) return;
 
-	if (n) {
-		long scrolllines = collapse_tree(n);
-		if (scrolllines) {
-			if (redraw) {
-				display_nodes(cursor_line - start_line,visible_lines - (cursor_line - start_line),
-					      root_node,cursor_line,cursor_line);
-				tdu_interface_refresh();
-			} else {
-				long maxlines = visible_lines - (cursor_line - start_line);
-				if (scrolllines >= maxlines - 1) {
-					display_nodes(cursor_line - start_line,
-						      visible_lines - (cursor_line - start_line),
-						      root_node,cursor_line,cursor_line);
-				} else {
-					tdu_interface_refresh();
-					winsdelln(main_window,-scrolllines);
-					display_nodes(cursor_line - start_line,1,
-						      root_node,cursor_line,cursor_line);
-					display_nodes(visible_lines - scrolllines,scrolllines,
-						      root_node,cursor_line + maxlines - scrolllines,cursor_line);
-				}
-				tdu_interface_refresh();
-			}
+	long scrolllines = collapse_tree(n);
+	if (!scrolllines) return;
+
+	if (redraw) {
+		display_nodes(cursor_line - start_line, visible_lines - (cursor_line - start_line),
+			      root_node, cursor_line, cursor_line);
+		tdu_interface_refresh();
+	} else {
+		long maxlines = visible_lines - (cursor_line - start_line);
+		if (scrolllines >= maxlines - 1) {
+			display_nodes(cursor_line - start_line,
+				      visible_lines - (cursor_line - start_line),
+				      root_node, cursor_line, cursor_line);
+		} else {
+			tdu_interface_refresh();
+			winsdelln(main_window, -scrolllines);
+			display_nodes(cursor_line - start_line, 1,
+				      root_node, cursor_line, cursor_line);
+			display_nodes(visible_lines - scrolllines, scrolllines,
+				      root_node, cursor_line + maxlines - scrolllines, cursor_line);
 		}
+		tdu_interface_refresh();
 	}
 }
 
@@ -424,16 +419,16 @@ status_line_message (char *message)
 }
 
 void
-tdu_interface_sort (node_sort_fp fp,bool reverse,bool isrecursive)
+tdu_interface_sort (node_sort_fp fp, bool reverse, bool isrecursive)
 {
-	node_s *n = find_node_numbered(root_node,cursor_line);
+	node_s *n = find_node_numbered(root_node, cursor_line);
 	if (n && n->expanded) {
 
 		long lines = n->expanded;
 		long maxlines = visible_lines - (cursor_line - start_line) - 1;
 
 		status_line_message("sorting...");
-		tree_sort(n,fp,reverse,isrecursive);
+		tree_sort(n, fp, reverse, isrecursive);
 		status_line_message(NULL);
 
 		if (lines > maxlines) lines = maxlines;
@@ -448,7 +443,7 @@ tdu_interface_sort (node_sort_fp fp,bool reverse,bool isrecursive)
 }
 
 void
-tdu_interface_get_screen_size(int *lines, int *columns)
+tdu_interface_get_screen_size (int *lines, int *columns)
 {
 	FILE *tty;
 	struct winsize ws;
@@ -473,7 +468,7 @@ tdu_interface_get_screen_size(int *lines, int *columns)
 void
 tdu_interface_compute_visible_lines ()
 {
-	int bx,by,ex,ey;
+	int bx, by, ex, ey;
 	getbegyx(main_window, by, bx);
 	getmaxyx(main_window, ey, ex);
 	visible_lines = ey - by;
@@ -687,11 +682,11 @@ tdu_interface_keypress (int key)
 	case 'P':
 	case 'p':
 	{
-		node_s *node = find_node_numbered(root_node,cursor_line);
+		node_s *node = find_node_numbered(root_node, cursor_line);
 		node_s *parent = node ? node->parent : NULL;
 		if (parent) {
 			tdu_hide_cursor();
-			tdu_interface_move_to(find_node_number_in(parent,root_node));
+			tdu_interface_move_to(find_node_number_in(parent, root_node));
 		}
 		break;
 	}
@@ -731,7 +726,7 @@ tdu_interface_keypress (int key)
 			++expandlevel;
 		else
 			expandlevel = 1;
-		tdu_interface_expand(expandlevel,expandlevel > 1);
+		tdu_interface_expand(expandlevel, expandlevel > 1);
 		break;
 
 	case 12:                    /* C-l */
@@ -768,11 +763,11 @@ tdu_interface_keypress (int key)
 	case '8':
 	case '9':
 		expandlevel = key - '0';
-		tdu_interface_expand(expandlevel,1);
+		tdu_interface_expand(expandlevel, 1);
 		break;
 
 	case '*':
-		tdu_interface_expand(-1 /* fully */,1);
+		tdu_interface_expand(-1 /* fully */, 1);
 		break;
 
 	case 'h':

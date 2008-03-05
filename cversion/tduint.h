@@ -42,24 +42,24 @@ typedef enum tree_chars {
 				   has children left to display */
 } tree_chars_enum;
 
-void display_tree_chars(node_s *node, int levelsleft, int thisisit);
-void display_node(int line, node_s *node, int level, bool iscursor);
-int display_nodes(int line, int lines, node_s *node, long nodeline, long cursor);
-int display_nodes_(int line, int lines, node_s *node, long nodeline, long cursor, int level);
-void tdu_hide_cursor(void);
-void tdu_show_cursor(void);
-void tdu_interface_finish(int sig);
-void tdu_interface_refresh(void);
-void tdu_interface_display(void);
-void tdu_interface_expand(int levels, int redraw);
-void tdu_interface_collapse(int redraw);
-void tdu_interface_move_up(int n);
-void tdu_interface_move_down(int n);
-void tdu_interface_move_to(int n);
-void tdu_interface_page_up(void);
-void tdu_interface_page_down(void);
-void tdu_interface_sort(node_sort_fp fp, bool reverse, bool isrecursive);
-void tdu_interface_run(node_s *node);
+void display_tree_chars (node_s *node, int levelsleft, int thisisit);
+void display_node (int line, node_s *node, int level, bool iscursor);
+int display_nodes (int line, int lines, node_s *node, long nodeline, long cursor);
+int display_nodes_ (int line, int lines, node_s *node, long nodeline, long cursor, int level);
+void tdu_hide_cursor (void);
+void tdu_show_cursor (void);
+void tdu_interface_finish (int sig);
+void tdu_interface_refresh (void);
+void tdu_interface_display (void);
+void tdu_interface_expand (int levels, int redraw);
+void tdu_interface_collapse (int redraw);
+void tdu_interface_move_up (int n);
+void tdu_interface_move_down (int n);
+void tdu_interface_move_to (int n);
+void tdu_interface_page_up (void);
+void tdu_interface_page_down (void);
+void tdu_interface_sort (node_sort_fp fp, bool reverse, bool isrecursive);
+void tdu_interface_run (node_s *node);
 
 #define TDU_ONLINE_HELP \
 "NAVIGATION:\n" \

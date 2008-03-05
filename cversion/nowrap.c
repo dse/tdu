@@ -29,7 +29,7 @@
 #define BUFFER_SIZE 1024
 
 int
-wprintw_nowrap(WINDOW *win, const char *fmt, ...)
+wprintw_nowrap (WINDOW *win, const char *fmt, ...)
 {
 	va_list ap;
 	int y, x, maxy, maxx;
@@ -50,7 +50,7 @@ wprintw_nowrap(WINDOW *win, const char *fmt, ...)
 }
 
 int
-waddch_nowrap(WINDOW *win, const chtype ch)
+waddch_nowrap (WINDOW *win, const chtype ch)
 {
 	int y, x, maxy, maxx;
 	getmaxyx(win, maxy, maxx);

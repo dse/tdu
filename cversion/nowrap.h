@@ -25,8 +25,8 @@
 
 #include <curses.h>
 
-int wprintw_nowrap(WINDOW *win, const char *fmt, ...);
-int waddch_nowrap(WINDOW *win, const chtype ch);
+int wprintw_nowrap (WINDOW *win, const char *fmt, ...);
+int waddch_nowrap (WINDOW *win, const chtype ch);
 
 /*****************************************************************************/
 #endif /* NOWRAP_H */
