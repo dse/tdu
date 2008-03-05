@@ -53,6 +53,7 @@ static char *tree_chars_string[] = {
 };
 
 int USE_ACS_CHARS = 1;
+int show_descendents = 0;
 
 /*****************************************************************************/
 
@@ -117,6 +118,8 @@ display_node (int line,         /* line number on screen */
 
 	if (node) {
 		wprintw_nowrap(main_window,"%11ld ",node->size);
+		if (show_descendents)
+			wprintw_nowrap(main_window,"%11ld ",node->descendents);
 		display_tree_chars(node,level,1);
 		wprintw_nowrap(main_window,"%s",node->name);
 		if(node->nkids && !node->expanded) {
@@ -741,6 +744,19 @@ tdu_interface_keypress (int key)
 		wrefresh(status_window);
 		redrawwin(main_window);
 		wrefresh(main_window);
+		break;
+
+	case '#':
+		show_descendents = !show_descendents;
+		prev_start_line = -1;
+		tdu_interface_display();
+		break;
+
+	case 'a':
+	case 'A':
+		USE_ACS_CHARS = !USE_ACS_CHARS;
+		prev_start_line = -1;
+		tdu_interface_display();
 		break;
 
 	case '2':
