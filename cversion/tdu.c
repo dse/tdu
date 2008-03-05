@@ -41,7 +41,7 @@ struct option long_options[] = {
 };
 
 #define TDU_USAGE_MESSAGE \
-	"usage: [ du [OPTION ...] [FILE ...] | ] %s [OPTION ...] [FILE ...]\n" \
+	"usage: du [OPTION ...] [FILE ...] | %s [OPTION ...] [FILE ...]\n" \
 	"  -h, --help        display this message\n" \
 	"  -A, --ascii-tree  display tree branches using ASCII characters\n" \
 	"  -V, --version     show version, license terms\n"
