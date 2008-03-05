@@ -323,7 +323,7 @@ tdu_interface_expand (int levels, int redraw)
 				tdu_interface_refresh();
 			} else {
 				long maxlines = visible_lines - (cursor_line - start_line);
-
+				
 				if (scrolllines >= maxlines - 1) {
 					display_nodes(cursor_line - start_line,visible_lines - (cursor_line - start_line),
 						      root_node,cursor_line,cursor_line);
@@ -745,8 +745,10 @@ tdu_interface_keypress (int key)
 		break;
 
 	case 18:                    /* C-r */
-		redrawwin(curscr);
-		wrefresh(curscr);
+		redrawwin(status_window);
+		wrefresh(status_window);
+		redrawwin(main_window);
+		wrefresh(main_window);
 		break;
 
 	case '2':
