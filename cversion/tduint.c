@@ -71,8 +71,10 @@ display_tree_chars (node_s *node,   /* programs specify node to display */
 	if (levelsleft) {
 		tree_chars_enum tc =
 			(thisisit
-			 ? (node->islastkid ? IAM_LAST : IAM_NOTLAST)
-			 : (node->islastkid ? PARENT_LAST : PARENT_NOTLAST));
+			 ? (node->is_last_child
+			    ? IAM_LAST : IAM_NOTLAST)
+			 : (node->is_last_child
+			    ? PARENT_LAST : PARENT_NOTLAST));
 		if (USE_ACS_CHARS) {
 			switch (tc) {
 			case IAM_LAST:

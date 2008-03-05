@@ -48,10 +48,9 @@ typedef struct node {
 	   number of the first child's descendents that are visible. */
 
 	long descendents;	/* this node has this many descendents */
-	bool isdupath;		/* this node was found in du's output */
-	bool islastkid;		/* used for printing tree branches */
+	bool is_last_child;	/* used for printing tree branches */
 
-	/* islastkid and parent are used by display_tree_chars() to display
+	/* is_last_child and parent are used by display_tree_chars() to display
 	   the appropriate "tree branch" line-drawing characters next to each
 	   node */
 

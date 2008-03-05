@@ -42,8 +42,7 @@ initialize_node (node_s *node)
 	node->expanded = 0;
 	node->parent = NULL;
 	node->descendents = -1;	/* to be computed when tree is complete */
-	node->isdupath = 0;
-	node->islastkid = 1;
+	node->is_last_child = 1;
 	node->origindex = -1;
 	node->kids_by_name = NULL;
 }
@@ -80,9 +79,9 @@ add_child (node_s *parent,
 	
 	/* any former last kid is not a last kid anymore */
 	if (parent->nkids) 
-		parent->kids[parent->nkids - 1]->islastkid = 0;
+		parent->kids[parent->nkids - 1]->is_last_child = 0;
 	
-	kid->islastkid = 1;
+	kid->is_last_child = 1;
 	kid->origindex = parent->nkids;
 	parent->kids[parent->nkids++] = kid;
 	kid->parent = parent;
@@ -217,10 +216,9 @@ dump_tree (node_s *node, int level)
 		return;
 
 	int i;
-	printf("%10ld %5lda %5lde %c ",node->size,
+	printf("%10ld %5lda %5lde ",node->size,
 	       node->descendents,
-	       node->expanded,
-	       node->isdupath?'*':' ');
+	       node->expanded);
 	if (level)
 		for (i = 0; i < level; ++i) 
 			fputs("  ",stdout);
@@ -438,10 +436,10 @@ tree_sort (node_s *node,	/* node whose children to sort */
 		node_sort_rev = reverse;
 		qsort(node->kids,node->nkids,sizeof(node_s *),node_qsort_cmp);
 
-		/* islastkid values of children may have to be reinitialized */
+		/* is_last_child values of children may have to be reinitialized */
 		for (i = 0; i < (node->nkids-1); ++i)
-			node->kids[i]->islastkid = 0;
-		node->kids[i]->islastkid = 1;
+			node->kids[i]->is_last_child = 0;
+		node->kids[i]->is_last_child = 1;
 
 		/* if operating recursively, work on the kids now */
 		if (isrecursive) {
