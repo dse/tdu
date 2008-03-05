@@ -70,22 +70,13 @@ sub add_node {
 	my TDU::Node $child = $self;
 	my $new;
 
-	my @nodes;
-	if ($pathname =~ s{ ^ /+ }{}xo) {
-		push(@nodes, "/");
-	}
-	push(@nodes, grep { $_ ne "" } split(qr{ /+ }xo, $pathname));
+	my @nodes = grep { $_ ne "" } split("/", $pathname);
 	my $child_pathname = join($;, @nodes);
 	my $final = pop(@nodes);
-	#----------------------------------------------------------------------
-	# for "foo/bar/baz":  $final becomes "baz"
-	#                     and @nodes becomes ("foo", "bar")
-	# for "/foo/bar/baz": $final becomes "baz"
-	#                     and @nodes becomes ("/", "foo", "bar")
-
+	my $parent_pathname = join($;, @nodes);
+	
 	# incase this node's parent node will contain a large number of
 	# children, we want to access them quickly.
-	my $parent_pathname = join($;, @nodes);
 	if (exists($self->{children_by_name}->{$parent_pathname})) {
 		$child = $self->{children_by_name}->{$parent_pathname};
 	}
@@ -100,13 +91,15 @@ sub add_node {
 		}
 		$self->{children_by_name}->{$parent_pathname} = $child;
 	}
-
-	$new = $child->{children_by_name}->{$final};
-	if (!$new) {
-		$new = __PACKAGE__->new($final);
-		$child->add_child($new);
+	
+	if (defined($final)) {
+		$new = $child->{children_by_name}->{$final};
+		if (!$new) {
+			$new = __PACKAGE__->new($final);
+			$child->add_child($new);
+		}
+		$child = $new;
 	}
-	$child = $new;
 
 	if (defined($child->{size}) and $child->{size} != $size) {
 		# This should only happen if the same pathname is specified
@@ -967,7 +960,7 @@ sub help {
 			$window->erase();
 			$window->move(0, 0);
 		}
-		else {
+		elsif (@lines) {
 			$window->addstr("\n");
 		}
 	}
@@ -984,6 +977,10 @@ sub keypress {
 	my ($self, $key) = @_;
 
 	my $sortrecursive = ($self->{lastkey} eq '=');
+
+	if (!-t 2) {
+		printf STDERR "[$key]\n";
+	}
 
 	if ($key eq "q" or $key eq "Q"
 	    or $key eq "x" or $key eq "X"
@@ -1185,7 +1182,7 @@ my $ascii_tree = 0;
 
 use Getopt::Long;
 Getopt::Long::Configure("bundling", "gnu_compat");
-Getopt::Long::GetOptions("parse-only" => \$parse_only,
+Getopt::Long::GetOptions("P|parse-only" => \$parse_only,
 			 "A|ascii-tree" => \$ascii_tree,
 			 "V|version" => sub { version(); exit(0); },
 			 "h|help" => sub { usage(); exit(0); },
