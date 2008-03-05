@@ -29,6 +29,7 @@
 #include <signal.h>
 #include <sys/ioctl.h>
 #include <pty.h>
+#include <string.h>
 
 /*****************************************************************************/
 
@@ -554,6 +555,53 @@ tdu_interface_init_ncurses ()
 }
 
 void
+tdu_interface_help (char *message)
+{
+	werase(main_window);
+	wmove(main_window, 0, 0);
+		
+	while (*message) {
+		int len, show;
+		int maxy, maxx, y, x;
+
+		len = strcspn(message, "\r\n");
+		show = (len < COLS) ? len : COLS - 1;
+
+		getmaxyx(main_window, maxy, maxx);
+		getyx(main_window, y, x);
+
+		wclrtoeol(main_window);
+		waddnstr(main_window, message, show);
+
+		message += len;
+		message = strchr(message, '\n');
+		if (!message) break;
+		message += 1;
+
+		wprintw_nowrap(main_window, " [maxy = %d; y = %d]", maxy, y);
+
+		if (y >= (maxy - 1) && *message) {
+			wrefresh(main_window);
+			status_line_message("More... (press any key)");
+			wgetch(main_window);
+			status_line_message(NULL);
+			werase(main_window);
+			wmove(main_window, 0, 0);
+		}
+		else {
+			waddstr(main_window, "\n");
+		}
+	}
+	wrefresh(main_window);
+	status_line_message("Press any key to continue.");
+	wgetch(main_window);
+	status_line_message(NULL);
+
+	prev_start_line = -1;
+	tdu_interface_display();
+}
+
+void
 tdu_interface_keypress (int key)
 {
 	int sortrecursive;
@@ -581,6 +629,10 @@ tdu_interface_keypress (int key)
 	case 'x':
 		tdu_interface_finish(-1);
 		exit(0);
+
+	case '?':
+		tdu_interface_help(TDU_ONLINE_HELP);
+		break;
 
 	case 16:                    /* C-p */
 	case 'K':

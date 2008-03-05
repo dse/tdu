@@ -64,5 +64,28 @@ void tdu_interface_page_down(void);
 void tdu_interface_sort(node_sort_fp fp, bool reverse, bool isrecursive);
 void tdu_interface_run(node_s *node);
 
+#define TDU_ONLINE_HELP \
+"NAVIGATION:\n" \
+"  UP,DOWN,PGUP,PGDOWN   up,down by line,page\n" \
+"  HOME or <,END or >    first, last line\n" \
+"  p                     up to parent directory\n" \
+"EXPANDING/COLLAPSING:\n" \
+"  LEFT or 0, RIGHT   collapse, expand\n" \
+"  1-9,*              expand 1-9,all levels\n" \
+"SORTING CHILDREN:\n" \
+"  s,S   sort,reverse sort by size\n" \
+"  n,N   sort,reverse sort by name\n" \
+"  u,U   unsort to original order\n" \
+"  d,D   sort,reverse sort by number of descendents\n" \
+"  =s, =S, =u, =U, -n, =N   sort recursively\n" \
+"MISCELLANY:\n" \
+"  #         show/hide number of descendents\n" \
+"  A         toggle ASCII line-drawing characters\n" \
+"  Ctrl-L    recenter line\n" \
+"  Ctrl-R    refresh display\n" \
+"  q,x,ESC   quit\n" \
+"  ?         online help\n" \
+"  C         copyright info\n"
+
 /*****************************************************************************/
 #endif /* TDUINT_H */
