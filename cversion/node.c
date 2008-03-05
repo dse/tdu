@@ -486,7 +486,7 @@ parse_file (const char *pathname) /* filename, or "-" or NULL for stdin */
 		in = stdin;
 	} else {
 		in = fopen(pathname,"r");
-		if(!in) { 
+		if(!in) {
 			fprintf(stderr,"Cannot open %s: %s\n",
 				pathname,strerror(errno));
 			return NULL; 
@@ -509,7 +509,10 @@ parse_file (const char *pathname) /* filename, or "-" or NULL for stdin */
 	}
 
 	if (in != stdin) {
-		fclose(in);
+		if (fclose(in)) {
+			perror("parse_file: fclose");
+			exit(1);
+		}
 	}
 
 	fix_tree_sizes(node);
