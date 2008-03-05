@@ -35,53 +35,52 @@ node_s *			/* returns pointer to new node */
 new_node (const char *name)	/* if not NULL, initialize node's name */
 {
 	node_s *node = (node_s *)malloc(sizeof(node_s));
-	if (name) 
+	if (name)
 		node->name = strdup(name);
 	else
 		node->name = NULL;
 	node->size = -1;	/* to be computed later unless specified */
-	node->kids = NULL;
-	node->nkids = 0;
-	node->nkidblocks = 0;
+	node->children = NULL;
+	node->nchildren = 0;
+	node->nchildrenblocks = 0;
 	node->expanded = 0;
 	node->parent = NULL;
 	node->descendents = -1;	/* to be computed when tree is complete */
 	node->is_last_child = 1;
 	node->origindex = -1;
-	node->kids_by_name = NULL;
+	node->children_by_name = NULL;
 	return node;
 }
 
-/* Have a parent node adopt an existing node, kid, as a child. */
+/* Have a parent node adopt an existing node, child, as a child. */
 void 
-add_child (node_s *parent,
-	 node_s *kid)
+add_child (node_s *parent, node_s *child)
 {
-	if (!parent || !kid)
+	if (!parent || !child)
 		return;
 
-	if (!parent->kids_by_name)
-		parent->kids_by_name = 
+	if (!parent->children_by_name)
+		parent->children_by_name =
 			g_hash_table_new(g_str_hash, g_str_equal);
 	
 	/* if necessary, (re)allocate a bigger block of children */
-	if (parent->nkids >= parent->nkidblocks * KIDSATATIME) {
-		parent->kids = (node_s **)realloc(parent->kids,
-						  ++parent->nkidblocks
+	if (parent->nchildren >= parent->nchildrenblocks * KIDSATATIME) {
+		parent->children = (node_s **)realloc(parent->children,
+						  ++parent->nchildrenblocks
 						  * KIDSATATIME
 						  * sizeof(node_s *));
 	}
 	
-	/* any former last kid is not a last kid anymore */
-	if (parent->nkids) 
-		parent->kids[parent->nkids - 1]->is_last_child = 0;
+	/* any former last child is not a last child anymore */
+	if (parent->nchildren) 
+		parent->children[parent->nchildren - 1]->is_last_child = 0;
 	
-	kid->is_last_child = 1;
-	kid->origindex = parent->nkids;
-	parent->kids[parent->nkids++] = kid;
-	kid->parent = parent;
+	child->is_last_child = 1;
+	child->origindex = parent->nchildren; /* for "unsorting" */
+	parent->children[parent->nchildren++] = child;
+	child->parent = parent;
 	
-	g_hash_table_insert(parent->kids_by_name, kid->name, kid);
+	g_hash_table_insert(parent->children_by_name, child->name, child);
 }
 
 /* Either find an existing child whose name is the name argument, or
@@ -96,8 +95,8 @@ find_or_create_child (node_s *node, const char *name)
 	if (!node || !name)
 		return NULL;
 
-	if (node->kids_by_name) {
-		found = g_hash_table_lookup(node->kids_by_name, name);
+	if (node->children_by_name) {
+		found = g_hash_table_lookup(node->children_by_name, name);
 		if (found) {
 			return (node_s *)found;
 		}
@@ -131,9 +130,9 @@ add_node (node_s *root,		/* root node to which pathname is relative */
 	}
 	node->size = size;
 
-        if (node->kids_by_name) {
-                g_hash_table_destroy(node->kids_by_name);
-                node->kids_by_name = NULL;
+        if (node->children_by_name) {
+                g_hash_table_destroy(node->children_by_name);
+                node->children_by_name = NULL;
         }
 }
 
@@ -150,12 +149,12 @@ fix_tree_sizes (node_s *node)
 	/* return existing size if already computed */
 	if (node->size >= 0) return node->size;
 	
-	if (node->kids && node->nkids) {
+	if (node->children && node->nchildren) {
 		int i;
 		
 		/* compute size as the sum of the size of each child */
-		for (i = 0; i < node->nkids; ++i) {
-			size += fix_tree_sizes(node->kids[i]);
+		for (i = 0; i < node->nchildren; ++i) {
+			size += fix_tree_sizes(node->children[i]);
 		}
 	}
 	
@@ -173,18 +172,18 @@ fix_tree_descendents (node_s *node)
 	if (!node)
 		return 0;
 
-	descendents = node->nkids;
+	descendents = node->nchildren;
 
 	if (node->descendents >= 0) /* if already computed */
 		return node->descendents;
 
-	if (node->kids && node->nkids) {
+	if (node->children && node->nchildren) {
 		int i;
 
-		/* compute #descendents as this node's number of kids
+		/* compute #descendents as this node's number of children
 		   plus the sum of each child's #descendents */
-		for (i = 0; i < node->nkids; ++i) {
-			descendents += fix_tree_descendents(node->kids[i]);
+		for (i = 0; i < node->nchildren; ++i) {
+			descendents += fix_tree_descendents(node->children[i]);
 		}
 	}
 	return node->descendents = descendents;
@@ -194,11 +193,11 @@ void
 cleanup_tree (node_s *node)
 {
 	int i;
-	if (node && node->kids_by_name) {
-		g_hash_table_destroy(node->kids_by_name);
-		node->kids_by_name = NULL;
-		for (i = 0; i < node->nkids; ++i) {
-			cleanup_tree(node->kids[i]);
+	if (node && node->children_by_name) {
+		g_hash_table_destroy(node->children_by_name);
+		node->children_by_name = NULL;
+		for (i = 0; i < node->nchildren; ++i) {
+			cleanup_tree(node->children[i]);
 		}
 	}
 }
@@ -218,9 +217,9 @@ dump_tree (node_s *node, int level)
 		for (i = 0; i < level; ++i) 
 			fputs("  ",stdout);
 	printf("%s\n",node->name);
-	if (node->kids && node->nkids) {
-		for(i = 0; i < node->nkids; ++i) {
-			dump_tree(node->kids[i],level+1);
+	if (node->children && node->nchildren) {
+		for(i = 0; i < node->nchildren; ++i) {
+			dump_tree(node->children[i],level+1);
 		}
 	}
 }
@@ -255,18 +254,18 @@ expand_tree_ (node_s *node,	/* tree to expand */
 	long expanded;
 	int i;
 
-	if (!node || !node->nkids || !node->kids || !level)
+	if (!node || !node->nchildren || !node->children || !level)
 		return 0;
 
 	/* if collapsed, expand this level */
-	if (!node->expanded) ret += (node->expanded = node->nkids);
+	if (!node->expanded) ret += (node->expanded = node->nchildren);
 
 	/* if any levels left, recursively call self on each of the
-	   kids */    
+	   children */    
 	if (level > 0) level -= 1;	/* how many levels left? */
 	if (level) {
-		for (i = 0; i < node->nkids; ++i) {
-			expanded = expand_tree_(node->kids[i],level);
+		for (i = 0; i < node->nchildren; ++i) {
+			expanded = expand_tree_(node->children[i],level);
 			ret += expanded;
 			node->expanded += expanded;
 		}
@@ -304,10 +303,10 @@ void				/* returns number of nodes MADE invisible */
 collapse_tree_ (node_s *node)	/* ptr to tree to collapse */
 {
 	int i;
-	if (node && node->nkids && node->kids && node->expanded) {
+	if (node && node->nchildren && node->children && node->expanded) {
 		node->expanded = 0;
-		for (i = 0; i < node->nkids; ++i) {
-			collapse_tree_(node->kids[i]);
+		for (i = 0; i < node->nchildren; ++i) {
+			collapse_tree_(node->children[i]);
 		}
 	}
 }
@@ -322,14 +321,14 @@ find_node_numbered (node_s *node,long nodeline)
 	if(node && nodeline >= 0 && nodeline < (1 + node->expanded)) {
 		if (nodeline == 0) return node;
 		--nodeline;
-		if (node->expanded && node->kids && node->nkids) {
+		if (node->expanded && node->children && node->nchildren) {
 			i = 0;
-			while (i < node->nkids
-			       && nodeline >= (l = 1 + node->kids[i]->expanded)) {
+			while (i < node->nchildren
+			       && nodeline >= (l = 1 + node->children[i]->expanded)) {
 				nodeline -= l;
 				++i;
 			}
-			return find_node_numbered(node->kids[i],nodeline);
+			return find_node_numbered(node->children[i],nodeline);
 		}
 	}
 	return NULL;
@@ -354,11 +353,11 @@ find_node_number_in (node_s *node, node_s *root)
 				return n;
       
 			++n;
-			for (i = 0; (i < parent->nkids) && 
-				     (parent->kids[i] != node); ++i)
-				n += (1 + parent->kids[i]->expanded);
+			for (i = 0; (i < parent->nchildren) && 
+				     (parent->children[i] != node); ++i)
+				n += (1 + parent->children[i]->expanded);
       
-			if (i == parent->nkids) return -1; /* SHOULDN'T HAPPEN */
+			if (i == parent->nchildren) return -1; /* SHOULDN'T HAPPEN */
 
 			node = parent;
 		}
@@ -423,23 +422,23 @@ tree_sort (node_s *node,	/* node whose children to sort */
 	   bool reverse,	/* sort reverse? */
 	   bool isrecursive)	/* go recursive? */
 {
-	if (node && node->kids && node->nkids) {
+	if (node && node->children && node->nchildren) {
 		int i;
 		if (!fp) fp = node_cmp_unsort; /* provide a default
 						  incase fp == NULL */
 		node_sort = fp;
 		node_sort_rev = reverse;
-		qsort(node->kids,node->nkids,sizeof(node_s *),node_qsort_cmp);
+		qsort(node->children,node->nchildren,sizeof(node_s *),node_qsort_cmp);
 
 		/* is_last_child values of children may have to be reinitialized */
-		for (i = 0; i < (node->nkids-1); ++i)
-			node->kids[i]->is_last_child = 0;
-		node->kids[i]->is_last_child = 1;
+		for (i = 0; i < (node->nchildren-1); ++i)
+			node->children[i]->is_last_child = 0;
+		node->children[i]->is_last_child = 1;
 
-		/* if operating recursively, work on the kids now */
+		/* if operating recursively, work on the children now */
 		if (isrecursive) {
-			for (i = 0; i < node->nkids; ++i) {
-				tree_sort(node->kids[i], fp,
+			for (i = 0; i < node->nchildren; ++i) {
+				tree_sort(node->children[i], fp,
 					  reverse,isrecursive);
 			}
 		}

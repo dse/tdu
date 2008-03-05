@@ -32,10 +32,10 @@
 typedef struct node {
 	char *name;
 	long size;
-	struct node **kids;
-	GHashTable *kids_by_name;
-	long nkids;		/* this node has many direct children */
-	long nkidblocks;	/* allocated in this many "blocks" */
+	struct node **children;
+	GHashTable *children_by_name;
+	long nchildren;		/* this node has many direct children */
+	long nchildrenblocks;	/* allocated in this many "blocks" */
 	struct node *parent;
 	long expanded;		/* number of decendents (children, 
 				   grandchildren, etc.) visible */
@@ -62,7 +62,7 @@ typedef struct node {
 typedef int (*node_sort_fp)(const node_s *,const node_s *);
 
 node_s *new_node(const char *name);
-void add_child(node_s *parent, node_s *kid);
+void add_child(node_s *parent, node_s *child);
 node_s *find_or_create_child(node_s *node, const char *name);
 void add_node(node_s *root, const char *pathname, long size);
 long fix_tree_sizes(node_s *node);

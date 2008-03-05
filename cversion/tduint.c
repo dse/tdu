@@ -122,7 +122,7 @@ display_node (int line,         /* line number on screen */
 			wprintw_nowrap(main_window,"%11ld ",node->descendents);
 		display_tree_chars(node,level,1);
 		wprintw_nowrap(main_window,"%s",node->name);
-		if(node->nkids && !node->expanded) {
+		if(node->nchildren && !node->expanded) {
 			wprintw_nowrap(main_window," ...");
 		}
 	}
@@ -175,14 +175,14 @@ display_nodes_ (int line,       /* starting line number on screen */
 		--cursor;   /* one node closer to cursor */
 	}
 
-	if (node->expanded && node->kids && node->nkids && lines) {
+	if (node->expanded && node->children && node->nchildren && lines) {
 
 		/* Now traverse the children to discover which of
 		   those children nodeline refers to a node inside. */
 
 		i = 0;                    /* child number */
-		while (i < node->nkids
-		       && nodeline >= (l = 1 + node->kids[i]->expanded)) {
+		while (i < node->nchildren
+		       && nodeline >= (l = 1 + node->children[i]->expanded)) {
 			nodeline -= l;
 			cursor -= l;
 			++i;
@@ -190,16 +190,16 @@ display_nodes_ (int line,       /* starting line number on screen */
 
 		/* Now that nodeline is less than the number of
 		   visible nodes, we start displaying nodes from
-		   inside node->kids[i].  We may have to display nodes
-		   from one or more of the next kids as well. */
+		   inside node->children[i].  We may have to display nodes
+		   from one or more of the next children as well. */
 
-		while (i < node->nkids && lines > 0) {
-			l = display_nodes_(line,lines,node->kids[i],nodeline,cursor,
+		while (i < node->nchildren && lines > 0) {
+			l = display_nodes_(line,lines,node->children[i],nodeline,cursor,
 					   level+1);
 			ret += l; line += l; lines -= l;
 			nodeline = 0; /* continue at top of next 
 					 child's visible tree */
-			cursor -= (1 + node->kids[i]->expanded);
+			cursor -= (1 + node->children[i]->expanded);
 			++i;
 		}
 	}
@@ -799,8 +799,8 @@ tdu_interface_run (node_s *node)
 	int clear_status_line;
 
 	root_node = node;
-	if (root_node->nkids == 1) {
-		root_node = root_node->kids[0];
+	if (root_node->nchildren == 1) {
+		root_node = root_node->children[0];
 	}
 
 	signal(SIGINT,   tdu_interface_finish);
