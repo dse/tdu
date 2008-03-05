@@ -140,6 +140,10 @@ add_node (node_s *root,		/* root node to which pathname is relative */
 	node = root;
 
 	pathname_copy = strdup(pathname);
+	if (!pathname_copy) {
+		perror("add_node: strdup");
+		exit(1);
+	}
 	name = strtok(pathname_copy, "/");
 	while (name) {
 		node = find_or_create_child(node, name);
