@@ -28,37 +28,25 @@
 
 #include <glib.h>
 
+/* Each node's list of children is allocated in blocks of this many. */
+#define KIDSATATIME 256
+
 /* Each pathname element has associated with it a node in a tree. */
 typedef struct node {
 	char *name;
 	long size;
-	struct node **children;
+	struct node **children;	/* reallocated one block at a time */
 	GHashTable *children_by_name;
-	long nchildren;		/* this node has many direct children */
+	long nchildren;
 	long nchildrenblocks;	/* allocated in this many "blocks" */
 	struct node *parent;
-	long expanded;		/* number of decendents (children, 
-				   grandchildren, etc.) visible */
-
-	/* expanded is used to traverse the tree to find the node for a
-	   location expressed as a "line number", allowing us to use integers
-	   for our cursor locations and making tdu easier to write.  The root
-	   node's "line number" is zero; if expanded its first child's "line
-	   number" is one, its second child's "line number" is two plus the
-	   number of the first child's descendents that are visible. */
-
-	long descendents;	/* this node has this many descendents */
+	long expanded;		/* number of decendents visible -- used for
+				   computing each node's "line number" */
+	long descendents;
 	bool is_last_child;	/* used for printing tree branches */
-
-	/* is_last_child and parent are used by display_tree_chars() to display
-	   the appropriate "tree branch" line-drawing characters next to each
-	   node */
-
-	int origindex;		/* for restoring the original order in
-				   which a node's children were created */
+	int origindex;		/* for "unsorting" */
 } node_s;
 
-/* Type of function used to qsort the children of a tree node */
 typedef int (*node_sort_fp)(const node_s *, const node_s *);
 
 node_s *new_node (const char *name);
