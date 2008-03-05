@@ -30,8 +30,8 @@
 #include <curses.h>
 #include <glib.h>
 
-/* Create a new node and initialize its contents. */
-node_s *			/* returns pointer to new node */
+/* Create a new node, initialize its contents, and return a pointer to it. */
+node_s *
 new_node (const char *name)	/* if not NULL, initialize node's name */
 {
 	node_s *node = (node_s *)malloc(sizeof(node_s));
@@ -61,7 +61,7 @@ new_node (const char *name)	/* if not NULL, initialize node's name */
 	return node;
 }
 
-/* Have a parent node adopt an existing node, child, as a child. */
+/* Have a parent node adopt an existing node as a child. */
 void 
 add_child (node_s *parent, node_s *child)
 {
@@ -88,7 +88,6 @@ add_child (node_s *parent, node_s *child)
 		}
 	}
 	
-	/* any former last child is not a last child anymore */
 	if (parent->nchildren) 
 		parent->children[parent->nchildren - 1]->is_last_child = 0;
 	
@@ -100,9 +99,8 @@ add_child (node_s *parent, node_s *child)
 	g_hash_table_insert(parent->children_by_name, child->name, child);
 }
 
-/* Either find an existing child whose name is the name argument, or
-   create a new one under the specified node. */
-
+/* Find an existing child with the specified name or create a new one.
+   Returns it. */
 node_s *
 find_or_create_child (node_s *node, const char *name)
 {
@@ -125,18 +123,16 @@ find_or_create_child (node_s *node, const char *name)
 	return NULL;
 }
 
-/* link a pathname into the tree and set the destination node's size */
+/* Link a pathname into the tree and set the destination node's size. */
 void
-add_node (node_s *root,		/* root node to which pathname is relative */
-	  const char *pathname,	/* path relative to node */
-	  long size)		/* set destination node's size to this */
+add_node (node_s *root, const char *pathname, long size)
 {
-	if (!root || !pathname) return;
-	
 	char *pathname_copy;
 	char *name;
 	node_s *node;
 
+	if (!root || !pathname) return;
+	
 	node = root;
 
 	pathname_copy = strdup(pathname);
@@ -157,23 +153,18 @@ add_node (node_s *root,		/* root node to which pathname is relative */
         }
 }
 
-/* compute sizes of nodes in a tree whose sizes aren't initialized */
-/* === THIS IS A RECURSIVE FUNCTION. === */
-long				/* returns the size of the node */
+/* Recursively fix any nodes in a tree whose size is not yet specified.
+   Returns size of specified node. */
+long
 fix_tree_sizes (node_s *node)
 {
 	long size = 0;
 
-	if (!node)
-		return 0;
-	
-	/* return existing size if already computed */
-	if (node->size >= 0) return node->size;
+	if (!node) return 0;
+	if (node->size >= 0) return node->size; /* no need to recompute */
 	
 	if (node->children && node->nchildren) {
 		int i;
-		
-		/* compute size as the sum of the size of each child */
 		for (i = 0; i < node->nchildren; ++i) {
 			size += fix_tree_sizes(node->children[i]);
 		}
@@ -182,27 +173,21 @@ fix_tree_sizes (node_s *node)
 	return node->size = size;
 }
 
-/* compute #descendents of nodes in a tree whose descendents isn't
-   already computed */
-/* === THIS IS A RECURSIVE FUNCTION. === */
-long				/* returns node's #descendents */
+/* Recursively compute each node's number of descendents.
+   Returns number of descendents in specified node. */
+long
 fix_tree_descendents (node_s *node)
 {
 	long descendents;
 
-	if (!node)
-		return 0;
+	if (!node) return 0;
+	if (node->descendents >= 0) return node->descendents; /* don't
+								 recompute */
 
 	descendents = node->nchildren;
 
-	if (node->descendents >= 0) /* if already computed */
-		return node->descendents;
-
 	if (node->children && node->nchildren) {
 		int i;
-
-		/* compute #descendents as this node's number of children
-		   plus the sum of each child's #descendents */
 		for (i = 0; i < node->nchildren; ++i) {
 			descendents += fix_tree_descendents(node->children[i]);
 		}
@@ -210,6 +195,7 @@ fix_tree_descendents (node_s *node)
 	return node->descendents = descendents;
 }
 
+/* Perform other cleanups. */
 void
 cleanup_tree (node_s *node)
 {
@@ -223,60 +209,29 @@ cleanup_tree (node_s *node)
 	}
 }
 
-/* === THIS IS A RECURSIVE FUNCTION. === */
-void
-dump_tree (node_s *node, int level)
-{
-	if (!node)
-		return;
-
-	int i;
-	printf("%10ld %5lda %5lde ", node->size,
-	       node->descendents,
-	       node->expanded);
-	if (level)
-		for (i = 0; i < level; ++i) 
-			fputs("  ", stdout);
-	printf("%s\n", node->name);
-	if (node->children && node->nchildren) {
-		for(i = 0; i < node->nchildren; ++i) {
-			dump_tree(node->children[i], level+1);
-		}
-	}
-}
-
-/*****************************************************************************/
-/* tree node expansion/collapsing functions */
-
-/* "expand" a tree a certain level number of levels deep, or all the way. */
-long				/* returns #descendents MADE visible */
-expand_tree (node_s *node,	/* tree to expand */
-	     int level)		/* #levels deep, or -1 to expand fully */
+/* "expand" a tree a certain level number of levels deep, or if -1 is
+   specified, all the way.  Returns total number of nodes made visible. */
+long
+expand_tree (node_s *node, int level)
 {
 	node_s *p;
 	long ret = expand_tree_(node, level);
 
-	/* increment each ancestor's expand values once the work is
-	   complete.  For performance reasons this is not done
-	   recursively. */
 	for (p = node->parent; p; p = p->parent)
 		p->expanded += ret;
 
 	return ret;
 }
 
-/* does the dirty work for expand_tree() */
-/* === THIS IS A RECURSIVE FUNCTION. === */
-long				/* returns #descendents MADE visible */
-expand_tree_ (node_s *node,	/* tree to expand */
-	      int level)	/* #levels deep, or -1 to expand fully */
+/* Performs dirty work for expand_tree(). */
+long
+expand_tree_ (node_s *node, int level)
 {
 	long ret = 0;
 	long expanded;
 	int i;
 
-	if (!node || !node->nchildren || !node->children || !level)
-		return 0;
+	if (!(node && node->nchildren && node->children && level)) return 0;
 
 	/* if collapsed, expand this level */
 	if (!node->expanded) ret += (node->expanded = node->nchildren);
@@ -294,21 +249,18 @@ expand_tree_ (node_s *node,	/* tree to expand */
 	return ret;
 }
 
-/* Make all children of this node invisible. */
-long				/* returns number of nodes MADE invisible */
-collapse_tree (node_s *node)	/* ptr to tree to collapse */
+/* "collapse" the tree at the specified node.  Does not hide specified node.
+   Returns the total number of nodes made hidden. */
+long
+collapse_tree (node_s *node)
 {
 	node_s *p;
 	long collapsed;
     
-	if (!node)
-		return 0;
+	if (!node) return 0;
 
 	collapsed = node->expanded;
 
-	/* First we decrement each ancestor's expand values by the
-	   number of descendents we will make invisible.  For
-	   performance reasons this is not done recursively. */
 	if (collapsed) {
 		for (p = node->parent; p; p = p->parent)
 			p->expanded -= node->expanded;
@@ -318,23 +270,21 @@ collapse_tree (node_s *node)	/* ptr to tree to collapse */
 	return collapsed;
 }
 
-/* Does the dirty work for collapse_tree(). */
-/* === THIS IS A RECURSIVE FUNCTION. === */
-void				/* returns number of nodes MADE invisible */
-collapse_tree_ (node_s *node)	/* ptr to tree to collapse */
+/* Performs the dirty work for collapse_tree(). */
+void
+collapse_tree_ (node_s *node)
 {
 	int i;
-	if (node && node->nchildren && node->children && node->expanded) {
-		node->expanded = 0;
-		for (i = 0; i < node->nchildren; ++i) {
-			collapse_tree_(node->children[i]);
-		}
+	if (!(node && node->nchildren && node->children && node->expanded))
+		return;
+
+	node->expanded = 0;
+	for (i = 0; i < node->nchildren; ++i) {
+		collapse_tree_(node->children[i]);
 	}
 }
 
-/* Find the <nodeline>th visible node in the tree.  See the comments
-   in display_nodes_() if you can't figure out how this works. */
-
+/* Find the <nodeline>th visible node in the tree. */
 node_s *
 find_node_numbered (node_s *node, long nodeline)
 {
@@ -345,7 +295,8 @@ find_node_numbered (node_s *node, long nodeline)
 		if (node->expanded && node->children && node->nchildren) {
 			i = 0;
 			while (i < node->nchildren
-			       && nodeline >= (l = 1 + node->children[i]->expanded)) {
+			       && (nodeline >=
+				   (l = 1 + node->children[i]->expanded))) {
 				nodeline -= l;
 				++i;
 			}
@@ -355,13 +306,7 @@ find_node_numbered (node_s *node, long nodeline)
 	return NULL;
 }
 
-/* Find a node's "visible line number" address within the tree whose
-   root node is specified by root.  If root is NULL, this function
-   simply iterates through the chain of parents until it finds a node
-   with no parents, and considers that for all intents and purposes to
-   be the root.  This is used so tdu can move the cursor to the cursor
-   node's parent. */
-
+/* Find the specified node's visible line number within the specified root. */
 long
 find_node_number_in (node_s *node, node_s *root)
 {
@@ -385,9 +330,6 @@ find_node_number_in (node_s *node, node_s *root)
 	}
 	return n;
 }
-
-/*****************************************************************************/
-/* directory tree sorting functions */
 
 /* sort comparison functions for tree nodes */
 
@@ -415,14 +357,9 @@ node_cmp_descendents (const node_s *a, const node_s *b)
 	return (a->descendents - b->descendents);
 }
 
-/* see below */
+/* internal variables set by tree_sort, used when sorting trees */
 static node_sort_fp node_sort = node_cmp_unsort;
 static bool node_sort_rev = 0;
-
-/* sort comparison function that is passed directly to qsort().
-   node_sort_fp and node_sort_rev above are used to select which
-   sorting function to use before using this function and whether
-   to reverse or normally sort. */
 
 int
 node_qsort_cmp (const void *aa, const void *bb) 
@@ -434,30 +371,25 @@ node_qsort_cmp (const void *aa, const void *bb)
 	return ret;
 }
 
-/* sort the children of a tree node */
-/* === THIS FUNCTION CAN OPERATE RECURSIVELY. === */
+/* Recursively (or not) sort the children of a tree node. */
 void
-tree_sort (node_s *node,	/* node whose children to sort */
-	   node_sort_fp fp,	/* sort comparison function */
-	   bool reverse,	/* sort reverse? */
-	   bool isrecursive)	/* go recursive? */
+tree_sort (node_s *node, node_sort_fp fp, bool reverse, bool isrecursive)
 {
 	int i;
 
 	if (!(node && node->children && node->nchildren)) return;
 
-	if (!fp) fp = node_cmp_unsort; /* provide a default
-					  incase fp == NULL */
+	if (!fp) fp = node_cmp_unsort;
+
 	node_sort = fp;
 	node_sort_rev = reverse;
-	qsort(node->children, node->nchildren, sizeof(node_s *), node_qsort_cmp);
+	qsort(node->children, node->nchildren, sizeof(node_s *),
+	      node_qsort_cmp);
 
-	/* is_last_child values of children may have to be reinitialized */
 	for (i = 0; i < (node->nchildren-1); ++i)
 		node->children[i]->is_last_child = 0;
 	node->children[i]->is_last_child = 1;
 
-	/* if operating recursively, work on the children now */
 	if (isrecursive) {
 		for (i = 0; i < node->nchildren; ++i) {
 			tree_sort(node->children[i], fp,
@@ -466,13 +398,11 @@ tree_sort (node_s *node,	/* node whose children to sort */
 	}
 }
 
-/* create a tree structure for filenames and their sizes, grab each
-   line from a file or stdin, parse each line (assuming output is
-   similar to that of du) for blocksize and pathname, and add each
-   pathname and size to the tree. */
-
-node_s *			  /* returns pointer to root of tree */
-parse_file (const char *pathname) /* filename, or "-" or NULL for stdin */
+/* Parse output of du and create a tree structure.
+   Specify "-" or NULL for the filename to read from stdin.
+   Returns pointer to parent node. */
+node_s *
+parse_file (const char *pathname)
 {
 	node_s *node;
 	FILE *in;
@@ -500,7 +430,6 @@ parse_file (const char *pathname) /* filename, or "-" or NULL for stdin */
 	while (fgets(line, sizeof(line), in)) {
 		sscanf(line, "%ld %[^\n]\n", &size, path);
 		add_node(node, path, size);
-		/* display progress */
 		++entries;
 		if (show_progress && !(entries % 100))
 			fprintf(stderr, "%ld entries\r", entries);
