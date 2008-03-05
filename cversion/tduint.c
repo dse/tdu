@@ -578,8 +578,6 @@ tdu_interface_help (char *message)
 		if (!message) break;
 		message += 1;
 
-		wprintw_nowrap(main_window, " [maxy = %d; y = %d]", maxy, y);
-
 		if (*message) {
 			if (y >= (maxy - 1)) {
 				wrefresh(main_window);
