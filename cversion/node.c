@@ -35,10 +35,19 @@ node_s *			/* returns pointer to new node */
 new_node (const char *name)	/* if not NULL, initialize node's name */
 {
 	node_s *node = (node_s *)malloc(sizeof(node_s));
-	if (name)
-		node->name = strdup(name);
-	else
+	if (node == NULL) {
+		perror("new_node: malloc");
+		exit(1);
+	}
+	if (name) {
+		if (!(node->name = strdup(name))) {
+			perror("new_node: strdup");
+			exit(1);
+		}
+	}
+	else {
 		node->name = NULL;
+	}
 	node->size = -1;	/* to be computed later unless specified */
 	node->children = NULL;
 	node->nchildren = 0;
@@ -59,16 +68,24 @@ add_child (node_s *parent, node_s *child)
 	if (!parent || !child)
 		return;
 
-	if (!parent->children_by_name)
-		parent->children_by_name =
-			g_hash_table_new(g_str_hash, g_str_equal);
+	if (!parent->children_by_name) {
+		if (!(parent->children_by_name =
+		      g_hash_table_new(g_str_hash, g_str_equal))) {
+			perror("add_child: g_hash_table_new");
+			exit(1);
+		}
+	}
 	
 	/* if necessary, (re)allocate a bigger block of children */
 	if (parent->nchildren >= parent->nchildrenblocks * KIDSATATIME) {
 		parent->children = (node_s **)realloc(parent->children,
-						  ++parent->nchildrenblocks
-						  * KIDSATATIME
-						  * sizeof(node_s *));
+						      ++parent->nchildrenblocks
+						      * KIDSATATIME
+						      * sizeof(node_s *));
+		if (!parent->children) {
+			perror("add_child: realloc");
+			exit(1);
+		}
 	}
 	
 	/* any former last child is not a last child anymore */
