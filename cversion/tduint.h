@@ -30,16 +30,10 @@ extern int ascii_tree_chars;
 
 /* different types of "tree branches" that can be displayed" */
 typedef enum tree_chars {
-	IAM_LAST,		/* lower-left corner of box --- printed just
-				   before the node's name if node is the
-				   last child of its parent */
-	IAM_NOTLAST,		/* tee pointing right --- printed just
-				   before the node's name if node's
-				   parent has more children */
-	PARENT_LAST,		/* nothing --- printed if ancestor does
-				   not have any more children left */
-	PARENT_NOTLAST		/* vertical line --- printed if ancestor
-				   has children left to display */
+	IAM_LAST,		/* lower-left corner of box */
+	IAM_NOTLAST,		/* tee pointing right */
+	PARENT_LAST,		/* blank */
+	PARENT_NOTLAST		/* vertical line */
 } tree_chars_enum;
 
 void display_tree_chars (node_s *node, int levelsleft, int thisisit);
