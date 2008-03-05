@@ -798,7 +798,8 @@ tdu_interface_run (node_s *node)
 
 	tdu_interface_init_ncurses();
 
-	status_line_message("This is tdu.  Type ? for help.");
+	status_line_message("This is tdu.  Type ? for help.  "
+			    "Type C for license terms.");
 	clear_status_line = 1;
 	tdu_show_cursor();
 
