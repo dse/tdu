@@ -477,36 +477,20 @@ tdu_interface_resize_handler (int sig)
 	int lines, columns;
 	char number[sizeof(int) * 8 + 1]; /* overkill, I know. I don't care. */
 
-	endwin();
 	tdu_interface_get_screen_size(&lines, &columns);
-	COLS = columns;
-	LINES = lines;
-
-	if (getenv("LINES")) {
-		sprintf(number, "%d", lines);
-		setenv("LINES", number, 1);
-	}
-	if (getenv("COLUMNS")) {
-		sprintf(number, "%d", columns);
-		setenv("COLUMNS", number, 1);
-	}
-	
+	resize_term(lines, columns);
 	delwin(main_window);
 	delwin(status_window);
-
-	werase(tdu_window);
-	wresize(tdu_window, lines, columns);
-	doupdate();
-
+	wrefresh(curscr);	/* according to ncurses/test/view.c,
+				   linux needs this. */
 	main_window = newwin(LINES - 1, COLS, 0, 0);
 	status_window = newwin(1, COLS, LINES - 1, 0);
-
 	keypad(main_window, TRUE);
 	scrollok(main_window, 1);
 	
 	tdu_interface_compute_visible_lines();
 
-	prev_start_line = -1;
+	prev_start_line = -1;	/* force complete refresh */
 	if (cursor_line > (start_line + visible_lines - 1)) {
 		start_line = cursor_line - (visible_lines - 1);
 	}
@@ -534,7 +518,7 @@ tdu_interface_init_ncurses ()
 	
 	tdu_interface_compute_visible_lines();
 
-	prev_start_line = -1;
+	prev_start_line = -1;	/* force complete refresh on initialization */
 	start_line = 0;
 	cursor_line = 0;
 
@@ -584,7 +568,7 @@ tdu_interface_help (char *message)
 	wgetch(main_window);
 	status_line_message(NULL);
 
-	prev_start_line = -1;
+	prev_start_line = -1;	/* force complete refresh */
 	tdu_interface_display();
 }
 
