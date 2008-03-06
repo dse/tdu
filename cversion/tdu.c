@@ -152,7 +152,9 @@ debug (const char *fmt, ...)
 	va_end(ap);
 
 	if (getenv("DEBUG") && !isatty(fileno(stderr))) {
-		return vfprintf(stderr, fmt, ap);
+		int result = vfprintf(stderr, fmt, ap);
+		fflush(stderr);
+		return result;
 	}
 	else {
 		return 0;
