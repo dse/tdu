@@ -144,3 +144,17 @@ main (int argc, char **argv)
 	return 0;
 }
 
+int
+debug (const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	va_end(ap);
+
+	if (getenv("DEBUG") && !isatty(fileno(stderr))) {
+		return vfprintf(stderr, fmt, ap);
+	}
+	else {
+		return 0;
+	}
+}

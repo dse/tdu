@@ -35,5 +35,7 @@
 "\n" \
 "http://dse.webonastick.com/tdu/COPYING.txt\n"
 
+int debug (const char *fmt, ...);
+
 /*****************************************************************************/
 #endif /* TDU_H */
