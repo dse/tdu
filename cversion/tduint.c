@@ -486,9 +486,9 @@ tdu_interface_resize_handler (int sig)
 		sprintf(number, "%d", lines);
 		setenv("LINES", number, 1);
 	}
-	if (getenv("COLS")) {
+	if (getenv("COLUMNS")) {
 		sprintf(number, "%d", columns);
-		setenv("COLS", number, 1);
+		setenv("COLUMNS", number, 1);
 	}
 	
 	delwin(main_window);
