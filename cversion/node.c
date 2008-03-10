@@ -284,6 +284,56 @@ collapse_tree_ (node_s *node)
 	}
 }
 
+/******************************************************************************
+
+Okay, the next two functions may require a little explanation.  When using
+tdu, each visible node has a "line number".  The root node's line number is 0;
+each subsequent visible node has the next line number.
+
+Line numbers are only used for cursor and screen positioning.  The cursor_line
+and start_line variables in tduint.c refer to these line numbers.
+
+Line
+No.
+----
+ 0        684 /
+ 1        684 `- usr
+ 2        684    `- local
+ 3        192       +- share ...
+ 4          4       +- bin ...
+ 5          4       +- games
+ 6         88       +- lib ...
+ 7          4       +- include
+ 8         12       +- sbin ...
+ 9        280       +- src ...
+10          0       +- man
+11         96       `- stow ...
+
+As nodes are expanded and collapsed, the line numbers will be different.
+
+Line
+No.
+----
+ 0        684 /
+ 1        684 `- usr
+ 2        684    `- local
+ 3        192       +- share
+ 4         48       |  +- man ...
+ 5         24       |  +- emacs ...
+ 6         88       |  +- perl ...
+ 7          8       |  +- texmf ...
+ 8          8       |  +- games ...
+ 9          8       |  +- zsh ...
+10          4       |  `- fonts
+11          4       +- bin ...
+12          4       +- games
+...
+
+Line numbers are calculated using the two functions below, not stored as data
+in each node.
+
+******************************************************************************/
+
 /* Find the <nodeline>th visible node in the tree. */
 node_s *
 find_node_numbered (node_s *node, long nodeline)
