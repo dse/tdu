@@ -37,6 +37,9 @@ int start_line;			/* line # in tree located at top of screen */
 int prev_start_line;		/* used in updating after cursor is moved */
 int visible_lines;		/* # lines on screen */
 
+/* For more information about line numbers: see find_node_numbered() and
+   find_node_number_in() functions in node.c */
+
 WINDOW *tdu_window;	       
 WINDOW *main_window;
 WINDOW *status_window;
