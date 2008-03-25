@@ -360,10 +360,11 @@ find_node_numbered (node_s *node, long nodeline)
 long
 find_node_number_in (node_s *node, node_s *root)
 {
-	if (!node) return -1;
-
 	long n = 0;
 	int i;
+
+	if (!node) return -1;
+
 	while (1) {
 		node_s *parent = node->parent;
 		if (node == root || parent == NULL) /* destination? */

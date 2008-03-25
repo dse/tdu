@@ -62,6 +62,8 @@ display_tree_chars (node_s *node,   /* programs specify node to display */
                     int levelsleft, /* # levels to go up. */
                     int thisisit)   /* is this the node we're displaying? */
 {
+	tree_chars_enum tc;
+
 	if (node->parent && levelsleft > 0) {
 		display_tree_chars(node->parent,
 				   (levelsleft < 0) ? -1 : (levelsleft - 1),
@@ -69,10 +71,9 @@ display_tree_chars (node_s *node,   /* programs specify node to display */
 	}
 	if (!levelsleft) return;
 
-	tree_chars_enum tc =
-		(thisisit
-		 ? (node->is_last_child ? IAM_LAST : IAM_NOTLAST)
-		 : (node->is_last_child ? PARENT_LAST : PARENT_NOTLAST));
+	tc = (thisisit
+	      ? (node->is_last_child ? IAM_LAST : IAM_NOTLAST)
+	      : (node->is_last_child ? PARENT_LAST : PARENT_NOTLAST));
 	if (ascii_tree_chars) {
 		wprintw_nowrap(main_window, tree_chars_string[tc]);
 	}
@@ -305,10 +306,13 @@ tdu_interface_display ()
 void
 tdu_interface_expand (int levels, int redraw)
 {
-	node_s *n = find_node_numbered(root_node, cursor_line);
+	node_s *n;
+	long scrolllines;
+
+	n = find_node_numbered(root_node, cursor_line);
 	if (!n) return;
 
-	long scrolllines = expand_tree(n, levels);
+	scrolllines = expand_tree(n, levels);
 	if (!scrolllines) return;
 
 	if (!redraw && (levels > 1))
@@ -347,10 +351,13 @@ tdu_interface_expand (int levels, int redraw)
 void
 tdu_interface_collapse (int redraw)
 {
-	node_s *n = find_node_numbered(root_node, cursor_line);
+	node_s *n;
+	long scrolllines;
+
+	n = find_node_numbered(root_node, cursor_line);
 	if (!n) return;
 
-	long scrolllines = collapse_tree(n);
+	scrolllines = collapse_tree(n);
 	if (!scrolllines) return;
 
 	if (redraw) {
@@ -490,7 +497,6 @@ void
 tdu_interface_resize_handler (int sig)
 {
 	int lines, columns;
-	char number[sizeof(int) * 8 + 1]; /* overkill, I know. I don't care. */
 
 	tdu_interface_get_screen_size(&lines, &columns);
 	resize_term(lines, columns);
