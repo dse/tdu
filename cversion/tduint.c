@@ -232,7 +232,8 @@ tdu_interface_refresh ()
 	int lines;
 
 	if (prev_start_line < 0) {
-		display_nodes(0, visible_lines, root_node, start_line, cursor_line);
+		display_nodes(0, visible_lines, root_node, start_line,
+			      cursor_line);
 	}
 	else {
 		/* make sure cursor_line is within reasonable range */
@@ -241,10 +242,13 @@ tdu_interface_refresh ()
 		else if (cursor_line > root_node->expanded)
 			cursor_line = root_node->expanded;
 
-		/* position start_line such that cursor_line is on the screen */
-		if (cursor_line < start_line) /* up off the screen? */
+		/* position start_line such that
+		   cursor_line is on the screen */
+		if (cursor_line < start_line)
+			/* up off the screen? */
 			start_line = cursor_line;
-		else if (cursor_line > (start_line+visible_lines-1)) /* down off the screen? */
+		else if (cursor_line > (start_line+visible_lines-1))
+			/* down off the screen? */
 			start_line = cursor_line - (visible_lines - 1);
 
 		/* make sure start_line is within reasonable range */
