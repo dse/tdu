@@ -188,8 +188,8 @@ display_nodes_ (int line,       /* starting line number on screen */
 		   from one or more of the next children as well. */
 
 		while (i < node->nchildren && lines > 0) {
-			l = display_nodes_(line, lines, node->children[i], nodeline, cursor,
-					   level+1);
+			l = display_nodes_(line, lines, node->children[i],
+					   nodeline, cursor, level+1);
 			ret += l; line += l; lines -= l;
 			nodeline = 0; /* continue at top of next 
 					 child's visible tree */
@@ -678,7 +678,8 @@ tdu_interface_keypress (int key)
 		node_s *parent = node ? node->parent : NULL;
 		if (parent) {
 			tdu_hide_cursor();
-			tdu_interface_move_to(find_node_number_in(parent, root_node));
+			tdu_interface_move_to(find_node_number_in(parent,
+								  root_node));
 		}
 		break;
 	}
@@ -713,7 +714,7 @@ tdu_interface_keypress (int key)
 	case '1':
 	case 6:                     /* C-f */
 	case KEY_RIGHT:
-		key = KEY_RIGHT;          /* so lastkey can be checked for repeats */
+		key = KEY_RIGHT; /* so lastkey can be checked for repeats */
 		if (lastkey == KEY_RIGHT || (lastkey >= '2' && lastkey <= '9'))
 			++expandlevel;
 		else
