@@ -23,15 +23,15 @@
 #define TDU_H
 /*****************************************************************************/
 
-#define TDU_VERSION "2008-03-04"
+#define TDU_VERSION "2008-03-24"
 
 #define TDU_COPYRIGHT_INFO \
 "This is tdu version " TDU_VERSION ".\n" \
 "Copyright (C) 2004-2008 Darren Stuart Embry.\n" \
 "\n" \
-"This program comes with ABSOLUTELY NO WARRANTY.  This is free software, and\n" \
-"you are welcome to redistribute it under the terms of the GNU General Public\n" \
-"License, Verison 2, available here:\n" \
+"This program comes with ABSOLUTELY NO WARRANTY.  This is free software,\n" \
+"and you are welcome to redistribute it under the terms of the GNU General\n" \
+"Public License, Verison 2, available here:\n" \
 "\n" \
 "http://dse.webonastick.com/tdu/COPYING.txt\n"
 
