@@ -311,7 +311,8 @@ tdu_interface_expand (int levels, int redraw)
 		redraw = 1;
 
 	if (redraw) {
-		display_nodes(cursor_line - start_line, visible_lines - (cursor_line - start_line),
+		display_nodes(cursor_line - start_line,
+			      visible_lines - (cursor_line - start_line),
 			      root_node, cursor_line, cursor_line);
 		tdu_interface_refresh();
 	} 
@@ -319,13 +320,16 @@ tdu_interface_expand (int levels, int redraw)
 		long maxlines = visible_lines - (cursor_line - start_line);
 
 		if (scrolllines >= maxlines - 1) {
-			display_nodes(cursor_line - start_line, visible_lines - (cursor_line - start_line),
+			display_nodes(cursor_line - start_line,
+				      visible_lines - (cursor_line
+						       - start_line),
 				      root_node, cursor_line, cursor_line);
 		}
 		else {
 			tdu_interface_refresh();
 			winsdelln(main_window, scrolllines);
-			display_nodes(cursor_line - start_line, scrolllines + 1,
+			display_nodes(cursor_line - start_line,
+				      scrolllines + 1,
 				      root_node, cursor_line, cursor_line);
 		}
 		tdu_interface_refresh();
@@ -346,7 +350,8 @@ tdu_interface_collapse (int redraw)
 	if (!scrolllines) return;
 
 	if (redraw) {
-		display_nodes(cursor_line - start_line, visible_lines - (cursor_line - start_line),
+		display_nodes(cursor_line - start_line,
+			      visible_lines - (cursor_line - start_line),
 			      root_node, cursor_line, cursor_line);
 		tdu_interface_refresh();
 	}
@@ -354,7 +359,8 @@ tdu_interface_collapse (int redraw)
 		long maxlines = visible_lines - (cursor_line - start_line);
 		if (scrolllines >= maxlines - 1) {
 			display_nodes(cursor_line - start_line,
-				      visible_lines - (cursor_line - start_line),
+				      visible_lines - (cursor_line
+						       - start_line),
 				      root_node, cursor_line, cursor_line);
 		}
 		else {
@@ -363,7 +369,9 @@ tdu_interface_collapse (int redraw)
 			display_nodes(cursor_line - start_line, 1,
 				      root_node, cursor_line, cursor_line);
 			display_nodes(visible_lines - scrolllines, scrolllines,
-				      root_node, cursor_line + maxlines - scrolllines, cursor_line);
+				      root_node,
+				      cursor_line + maxlines - scrolllines,
+				      cursor_line);
 		}
 		tdu_interface_refresh();
 	}
