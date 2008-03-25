@@ -469,13 +469,17 @@ tdu_interface_get_screen_size (int *lines, int *columns)
 
 	tty = fopen("/dev/tty", "r+");
 	if (!tty) {
+		int e = errno;
 		endwin();
-		fprintf(stderr, "oh crap, no tty!\n");
+		errno = e;
+		perror("fopen /dev/tty");
 		exit(1);
 	}
 	if (ioctl(fileno(tty), TIOCGWINSZ, &ws)) {
+		int e = errno;
 		endwin();
-		fprintf(stderr, "TIOCGWINSZ failed\n");
+		errno = e;
+		perror("ioctl TIOCGWINSZ");
 		exit(1);
 	}
 	fclose(tty);
@@ -522,7 +526,10 @@ tdu_interface_resize_handler (int sig)
 void
 tdu_interface_init_ncurses ()
 {
-	freopen("/dev/tty", "r", stdin);
+	if (!freopen("/dev/tty", "r", stdin)) {
+		perror("fopen /dev/tty");
+		exit(1);
+	}
   
 	tdu_window = initscr();
 	keypad(tdu_window, TRUE);
