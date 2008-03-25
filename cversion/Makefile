@@ -34,7 +34,7 @@ $(PROG): $(OBJS)
 
 .PHONY: splint
 splint:
-	splint -posix-lib `pkg-config --cflags glib-2.0` *.c *.h
+	splint -weak -posix-lib `pkg-config --cflags glib-2.0` *.c *.h
 
 install = /usr/bin/install
 prefix = /usr/local
