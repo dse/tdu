@@ -38,8 +38,10 @@ typedef enum tree_chars {
 
 void display_tree_chars (node_s *node, int levelsleft, int thisisit);
 void display_node (int line, node_s *node, int level);
-int display_nodes (int line, int lines, node_s *node, long nodeline, long cursor);
-int display_nodes_ (int line, int lines, node_s *node, long nodeline, long cursor, int level);
+int display_nodes (int line, int lines, node_s *node, long nodeline,
+		   long cursor);
+int display_nodes_ (int line, int lines, node_s *node, long nodeline,
+		    long cursor, int level);
 void tdu_hide_cursor (void);
 void tdu_show_cursor (void);
 void tdu_interface_finish (int sig);
