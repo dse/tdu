@@ -18,9 +18,6 @@ MAYBE
 
 TODO for C version
 
-- use the terminal cursor instead of your own custom one.
-  [implemented in Perl version]
-
 - use long long instead of long for specifying sizes where possible.
   [not needed for Perl version]
 
@@ -31,18 +28,6 @@ TODO for C version
 - different levels of verbosity, specified by -v with optional numeric
   arg, -q is equiv. to -v0
   [not applicable to Perl version]
-
-- FIX: resize handling
-  [implemented in Perl version]
-
-- some semblance of online "help"
-  [implemented in Perl version]
-
-- status line
-  [implemented in Perl version]
-
-- total redraw (C-r)
-  [implemented in Perl version]
 
 - someday use isdupath to collapse unnecessary levels
   [eh?  I don't remember what I mean by this.]
