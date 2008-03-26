@@ -59,12 +59,15 @@ tar:
 		--exclude='.deps' \
 	)
 
-tdu.1.txt: tdu.1
-	nroff -man tdu.1 > tdu.1.txt
-tdu.1.ps: tdu.1
-	groff -Tps -man tdu.1 > tdu.1.ps
-tdu.1.html: tdu.1
-	groff -Thtml -man tdu.1 > tdu.1.html
+%.1.txt: %.1
+	nroff -man $< > $@.
+	mv $@. $@
+%.1.ps: %.1
+	groff -Tps -man $< >$@.
+	mv $@. $@
+%.1.html: %.1
+	groff -Thtml -man $< >$@.
+	mv $@. $@
 
 .SUFFIXES: .d
 
