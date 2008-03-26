@@ -70,13 +70,22 @@ sub add_node {
 	my TDU::Node $child = $self;
 	my $new;
 
-	my @nodes = grep { $_ ne "" } split("/", $pathname);
+	my @nodes;
+	if ($pathname =~ s{ ^ /+ }{}xo) {
+		push(@nodes, "/");
+	}
+	push(@nodes, grep { $_ ne "" } split(qr{ /+ }xo, $pathname));
 	my $child_pathname = join($;, @nodes);
 	my $final = pop(@nodes);
-	my $parent_pathname = join($;, @nodes);
-	
+	#----------------------------------------------------------------------
+	# for "foo/bar/baz":  $final becomes "baz"
+	#                     and @nodes becomes ("foo", "bar")
+	# for "/foo/bar/baz": $final becomes "baz"
+	#                     and @nodes becomes ("/", "foo", "bar")
+
 	# incase this node's parent node will contain a large number of
 	# children, we want to access them quickly.
+	my $parent_pathname = join($;, @nodes);
 	if (exists($self->{children_by_name}->{$parent_pathname})) {
 		$child = $self->{children_by_name}->{$parent_pathname};
 	}
@@ -91,15 +100,13 @@ sub add_node {
 		}
 		$self->{children_by_name}->{$parent_pathname} = $child;
 	}
-	
-	if (defined($final)) {
-		$new = $child->{children_by_name}->{$final};
-		if (!$new) {
-			$new = __PACKAGE__->new($final);
-			$child->add_child($new);
-		}
-		$child = $new;
+
+	$new = $child->{children_by_name}->{$final};
+	if (!$new) {
+		$new = __PACKAGE__->new($final);
+		$child->add_child($new);
 	}
+	$child = $new;
 
 	if (defined($child->{size}) and $child->{size} != $size) {
 		# This should only happen if the same pathname is specified
@@ -960,7 +967,7 @@ sub help {
 			$window->erase();
 			$window->move(0, 0);
 		}
-		elsif (@lines) {
+		else {
 			$window->addstr("\n");
 		}
 	}
@@ -978,21 +985,20 @@ sub keypress {
 
 	my $sortrecursive = ($self->{lastkey} eq '=');
 
-	if (!-t 2) {
-		printf STDERR "[$key]\n";
-	}
-
 	if ($key eq "q" or $key eq "Q"
 	    or $key eq "x" or $key eq "X"
 	    or $key eq chr(3)
 	    or $key eq chr(27)) {
 		$self->finish(0);
+		last;
 	}
 	elsif ($key eq "?") {
 		$self->help($ONLINE_HELP);
+		next;
 	}
 	elsif ($key eq "C" or $key eq "c") {
 		$self->help($main::COPYRIGHT_INFO);
+		next;
 	}
 	elsif ($key eq "k" or $key eq "K" or $key eq chr(16)
 	       or $key eq Curses::KEY_PREVIOUS
@@ -1182,7 +1188,7 @@ my $ascii_tree = 0;
 
 use Getopt::Long;
 Getopt::Long::Configure("bundling", "gnu_compat");
-Getopt::Long::GetOptions("P|parse-only" => \$parse_only,
+Getopt::Long::GetOptions("parse-only" => \$parse_only,
 			 "A|ascii-tree" => \$ascii_tree,
 			 "V|version" => sub { version(); exit(0); },
 			 "h|help" => sub { usage(); exit(0); },
