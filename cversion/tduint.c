@@ -30,6 +30,7 @@
 #include <sys/ioctl.h>
 #include <pty.h>
 #include <string.h>
+#include <errno.h>
 
 node_s *root_node;		/* root node of tree being displayed */
 int cursor_line;		/* line # in tree where "cursor" is located */
