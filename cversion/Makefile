@@ -24,12 +24,9 @@ OBJS = $(SRCS:.c=.o)
 LIBS = -lncurses
 
 $(PROG): $(OBJS)
-	@pkg-config --exists glib-2.0 || \
-	{ >&2 echo "Install the glib 2.0 development package."; exit 1; }
 	$(CC) `pkg-config --libs glib-2.0` $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+
 .c.o:
-	@pkg-config --exists glib-2.0 || \
-	{ >&2 echo "Install the glib 2.0 development package."; exit 1; }
 	$(CC) `pkg-config --cflags glib-2.0` -Wall $(CFLAGS) -c $< -o $@
 
 .PHONY: splint
