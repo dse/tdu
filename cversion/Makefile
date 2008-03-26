@@ -46,7 +46,10 @@ install: $(PROG)
 
 .PHONY: tar
 tar:
-	( umask 022 ; cd .. ; tar cvvzf tdu-`date +%Y-%m-%d`.tar.gz tdu \
+	( umask 022 && cd .. && \
+		tar cvvzf tdu-`date +%Y-%m-%d`.tar.gz tdu \
+		--exclude=.svn \
+		--exclude=test \
 		--exclude=CVS \
                 --exclude='#*#' \
                 --exclude='.#*' \
@@ -57,6 +60,8 @@ tar:
 		--exclude='*.o' \
 		--exclude='*.d' \
 		--exclude='.deps' \
+		--exclude='tdu.1.*' \
+		--exclude=TAGS \
 	)
 
 %.1.txt: %.1
