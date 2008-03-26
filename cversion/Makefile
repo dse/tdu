@@ -15,6 +15,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307$
 
+.PHONY: all
 all: tdu
 
 SRCS = tdu.c node.c tduint.c nowrap.c
@@ -35,12 +36,15 @@ splint:
 
 install = /usr/bin/install
 prefix = /usr/local
+
+.PHONY: install
 install: $(PROG)
 	$(install) -d -m 0755 $(prefix)/bin
 	$(install) -d -m 0755 $(prefix)/share/man/man1
 	$(install) -m 0755 $(PROG) $(prefix)/bin
 	$(install) -m 0644 tdu.1   $(prefix)/share/man/man1
 
+.PHONY: tar
 tar:
 	( umask 022 ; cd .. ; tar cvvzf tdu-`date +%Y-%m-%d`.tar.gz tdu \
 		--exclude=CVS \
@@ -54,22 +58,23 @@ tar:
 		--exclude='*.d' \
 		--exclude='.deps' \
 	)
+
 tdu.1.txt: tdu.1
 	nroff -man tdu.1 > tdu.1.txt
 tdu.1.ps: tdu.1
 	groff -Tps -man tdu.1 > tdu.1.ps
 tdu.1.html: tdu.1
 	groff -Thtml -man tdu.1 > tdu.1.html
-###############################################################################
-.PHONY: all install clean
+
 .SUFFIXES: .d
-###############################################################################
+
+.PHONY: clean
 clean:
 	/bin/rm -fr tdu.1.html tdu.1.ps *.o *.d *~ core $(PROG)
-###############################################################################
+
 %.d: %.c
 	@ >&2 echo Fixing dependencies for $< . . .
 	@ $(CC) -MM $(CPPFLAGS) $< | sed 's/^$*\.o/& $@/g' > $@ || true
+
 -include $(SRCS:.c=.d)
-###############################################################################
 
