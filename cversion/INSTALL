@@ -1,13 +1,35 @@
-make
-	Compiles the tdu executable.
+Requirements to compile and install tdu:
+	
+	- gcc
+	- make
+	- ncurses (including header files)
+	- glib 2.0 (including header files)
 
-make install
-	Compiles the tdu executable, installs it in /usr/local/bin,
-	and installs the manpage in /usr/local/man/man1.
+To install the above on a Debian GNU/Linux system:
 
-make install prefix=/usr
-	Use /usr instead of /usr/local.
+	apt-get install gcc make libncurses5-dev libglib-2.0-dev
 
-make install prefix=/usr/local/stow/tdu
-	You can install this page with GNU Stow if you desire.
+What you need to do:
 
+	1. type: make
+	2. type: make install
+
+What the above steps do:
+
+	make
+	- compiles the C source code and builds the tdu executable.
+	make install
+	- installs the executable as /usr/local/bin/tdu
+	- installs the manpage as /usr/local/man/man1/tdu.1
+
+If you do not wish to install into /usr/local, then instead of a simple "make
+install" you can install to a different installation path via one of the
+following:
+
+	make install prefix=/usr
+
+	# if you have the GNU Stow package installed
+	make install prefix=/usr/local/stow/tdu
+	cd /usr/local/stow
+	stow tdu
+	
