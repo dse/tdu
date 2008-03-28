@@ -68,13 +68,13 @@ tar:
 		--exclude=TAGS \
 	)
 
-%.1.txt: %.1
-	nroff -man $< > $@.
+%.1.txt: %.1 Makefile
+	nroff -man $< | col -b > $@.
 	mv $@. $@
-%.1.ps: %.1
+%.1.ps: %.1 Makefile
 	groff -Tps -man $< >$@.
 	mv $@. $@
-%.1.html: %.1
+%.1.html: %.1 Makefile
 	groff -Thtml -man $< >$@.
 	mv $@. $@
 
