@@ -24,9 +24,6 @@ tdu \- folding-outline disk usage display
 .SH SYNOPSIS
 .BI "du " args
 .B "| tdu [-h] [-A] [-V]"
-.BI "[-G " group-name
-.BI "-I " pattern
-.BI "-I " pattern " ...]"
 .SH DESCRIPTION
 tdu is a program that displays disk space utilization as reported by
 du(1) in an interactive full-screen folding outline.  tdu displays the
@@ -37,79 +34,57 @@ files, if du -x is used) within each directory.  The entries can be
 sorted by filename or space utilizied, or reverted back to their
 original sorting order.
 .SH KEYS
-.IP "q, x, Control-C, Escape"
-Exit the tdu program.
-.IP "Up, Down, Home, End, PgUp, PgDn"
-Navigate through the directories and filenames being displayed.
-.IP "<, >"
-Keys that perform the same functions as Home and End.
-.IP "Control-N, Control-P, Control-B, Control-F"
-Emacs bindings that perform the same functions as the arrows.
-.IP "h, j, k, l"
-vi bindings that perform the same functions as the arrows.
-.IP "Right"
-If the cursor is located at a directory, shows immediate descendents
-of that directory.  If Right is pressed many times in succession,
-opens the tree to display as many levels of descending directories and
-filenames.
-.IP "1, 2, 3, 4, 5, 6, 7, 8, 9"
-Open the current node to display 1 to 9 levels of descending
-directories ans filenames.
+.SS Navigation
+.IP "UP, DOWN, PAGEUP, PAGEDOWN"
+Move the cursor up or down by one line or page.
+.IP "HOME or <"
+Move to cursor to the first line.
+.IP "END or >"
+Move to cursor to the last line.
+.IP p
+Move the cursor to the current item's parent directory.
+.SS Expanding and Collapsing
+.IP "LEFT or 0 (zero)"
+Collapse the current node's children.
+.IP "RIGHT"
+Expand the current node's chlidren.
+Repeated presses of this key expand further.
+.IP "1 to 9"
+Expand 1 to 9 levels deep.
 .IP "*"
-Display all levels of descendents of the current node.
-.IP "Left, 0"
-If the cursor is located at a directory, hides all of its descendents
-from the display.
-.IP "p"
-Move the cursor to the current node's parent.
+Expand all levels deep.
+.SS Sorting
 .IP "s, S"
-Sort the direct descendents of the current node in ascending (or
-descending) order of size.
+Sort current item's children in ascending, descending order by size.
 .IP "n, N"
-Sort the direct descendents of the current node in ascending (or
-descending) order of filename.
+Sort current item's children in ascending, descending order by name.
+.IP "d, D"
+Sort current item's children in ascending, descending order by
+number of descendent nodes.
 .IP "u, U"
-Re-sort the direct descendents of the current node in the original
-order (or its reverse).
-.IP "= then s, S, n, N, u, or U"
-Perform one of the above sorting operations recursively.
-.IP "Control-L"
-Move the current node to the center of the screen as closely as
-possible.
-.IP "Control-R"
-Refresh the entire display, incase it has been clobbered.
+Revert current item's children to original order, or its reverse.
+.IP "="
+Press before one of the above sorting keys to apply the sort recursively.
+.SS Miscellaneous
+.IP "#"
+Hide/show the number of descendents of each node.
+.IP "a, A"
+Toggle the use of ASCII line-drawing characters.
+.IP "q, x, ESC"
+Quit the program.
+.IP "?"
+Display online help.
+.IP "c, C"
+Display copyright and licensing information.
 .SH OPTIONS
-.IP -h
-Display a summary of command-line options.
-.IP -V
-Display the version of the program and its license terms.
-.IP -A
-Use ASCII characters instead of line-drawing characters.
-.IP "-G group-name and -I pattern"
-The "-a" option of du(1) is used to obtain usage information on all
-files, not just directories.  These options lump filenames within a
-directory into groups in order to display their collective disk
-utilizaion.  Groups are displayed as fake directories, and individual
-filenames within those groups can still be displayed.
-
-"-G group-name" is specified first, then multiple "-I pattern" options
-can be specified to group files matched by those patterns into the
-group-name.  Patterns can contain the "?" and "*" wildcard characters,
-which respectively match exactly one or any number of characters in
-a filename.
-
-Additional groups of -G and -I options can be specified.
-
-The first pattern that each filename matches determines which group
-into which the filename is classified.
-.SH EXAMPLES
-.IP "du -ax | tdu -G 'BACKUP FILES' -I '*~' -I '#*#' -G 'POSTSCRIPT' -I '*.ps'"
-Collectively displays usage for all backup files in a particular
-directory under the name "BACKUP FILES", and all PostScript files
-under the name "POSTSCRIPT".
-.SH BUGS
-This program does not handle terminal resizing right now.
-.SH LIMITATIONS
+.IP "-h, --help"
+.IP "-A, --ascii-tree"
+.IP "-V, --show-version"
+.IP "-I, -G"
+These options have been removed from tdu.
+You can use a separate program, dugroup(1), to group files together by
+extension.
+.SH BUGS AND LIMITATIONS
 The use of certain options for du will or may cause this program to
 not work properly.  Most if not all of these limitations also affect
 xdu(1).
@@ -126,14 +101,13 @@ This program does not currently have a -0/--null option to handle du's
 output if du is supplied with the same option.
 
 du's -S/--separate-dirs option may mislead tdu.
-.SH CAVEATS
-This program does not provide online help.
 .SH AUTHOR
 Darren Stuart Embry (dse@webonastick.com).
 .SH COPYRIGHT
-This program is free software.  It can be distributed and/or modified
-under the terms of the GNU General Public License.  For more details
-you can view it at http://dse.webonastick.com/tdu/COPYING.txt .
+This program is free software.  It can be distributed and/or modified under
+the terms of the GNU General Public License, Version 2.  For more details you
+can view it at http://dse.webonastick.com/tdu/COPYING.txt
 .SH "SEE ALSO"
 .BR du (1),
-.BR xdu (1)
+.BR xdu (1),
+.BR dugroup (1).
