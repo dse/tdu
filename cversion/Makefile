@@ -78,8 +78,6 @@ tar:
 	groff -Thtml -man $< >$@.
 	mv $@. $@
 
-.SUFFIXES: .d
-
 .PHONY: clean
 clean:
 	/bin/rm -fr tdu.1.html tdu.1.ps *.o *.d *~ core $(PROG)
