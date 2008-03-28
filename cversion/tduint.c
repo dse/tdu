@@ -666,7 +666,7 @@ tdu_interface_keypress (int key)
 	case '>':
 	case KEY_END:
 		tdu_hide_cursor();
-		tdu_interface_move_to(root_node->expanded - 1);
+		tdu_interface_move_to(root_node->expanded);
 		break;
 
 	case KEY_SPREVIOUS:
@@ -746,9 +746,8 @@ tdu_interface_keypress (int key)
 		break;
 
 	case 18:                    /* C-r */
-		redrawwin(status_window);
+		clearok(curscr, 1);
 		wrefresh(status_window);
-		redrawwin(main_window);
 		wrefresh(main_window);
 		break;
 
