@@ -1,7 +1,7 @@
 Requirements to compile and install tdu:
 	
 	- gcc
-	- make
+	- GNU Make (other makes are not guaranteed to work)
 	- ncurses (including header files)
 	- glib 2.0 (including header files)
 
