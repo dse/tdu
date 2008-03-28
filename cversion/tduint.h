@@ -62,6 +62,7 @@ void tdu_interface_run (node_s *node);
 "  UP,DOWN,PGUP,PGDOWN   up,down by line,page\n" \
 "  HOME or <,END or >    first, last line\n" \
 "  p                     up to parent directory\n" \
+"  Ctrl-L                recenter line\n" \
 "EXPANDING/COLLAPSING:\n" \
 "  LEFT or 0, RIGHT   collapse, expand\n" \
 "  1-9,*              expand 1-9,all levels\n" \
@@ -74,7 +75,6 @@ void tdu_interface_run (node_s *node);
 "MISCELLANY:\n" \
 "  #         show/hide number of descendents\n" \
 "  A         toggle ASCII line-drawing characters\n" \
-"  Ctrl-L    recenter line\n" \
 "  Ctrl-R    refresh display\n" \
 "  q,x,ESC   quit\n" \
 "  ?         online help\n" \
