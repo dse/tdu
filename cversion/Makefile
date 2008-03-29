@@ -46,11 +46,10 @@ install: $(PROG)
 
 .PHONY: tar
 tar:
-	( umask 022 && cd .. && \
-		tar cvvzf tdu-`date +%Y-%m-%d`.tar.gz \
-		--transform='s:^cversion:tdu:' \
+	tar cvvzf tdu-`date +%Y-%m-%d`.tar.gz \
+		--transform='s:^\.:tdu:' \
 		--show-transformed-names \
-		cversion \
+		. \
 		--exclude=.svn \
 		--exclude=test \
 		--exclude=CVS \
@@ -66,7 +65,7 @@ tar:
 		--exclude='tdu.1.*' \
 		--exclude=tdu \
 		--exclude=TAGS \
-	)
+		--exclude='*.tar.gz' \
 
 %.1.txt: %.1 Makefile
 	nroff -man $< | col -b > $@.
