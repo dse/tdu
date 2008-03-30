@@ -67,7 +67,8 @@ tar:
 		--exclude=tdu \
 		--exclude=TAGS \
 		--exclude='*.tar.gz' \
-		--exclude='*.tmp'
+		--exclude='*.tmp' \
+		--exclude='*.log'
 
 %.1.txt: %.1 Makefile
 	nroff -man $< | col -bx > $@.
