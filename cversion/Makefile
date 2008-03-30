@@ -20,11 +20,11 @@ all: tdu
 
 SRCS = tdu.c node.c tduint.c nowrap.c
 HDRS = tduproto.h
-PROG = tdu
+program = tdu
 OBJS = $(SRCS:.c=.o)
 LIBS = -lncurses
 
-$(PROG): $(OBJS)
+$(program): $(OBJS)
 	$(CC) `pkg-config --libs glib-2.0` $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 .c.o:
@@ -38,10 +38,10 @@ install = /usr/bin/install
 prefix = /usr/local
 
 .PHONY: install
-install: $(PROG)
+install: $(program)
 	$(install) -d -m 0755 $(prefix)/bin
 	$(install) -d -m 0755 $(prefix)/share/man/man1
-	$(install) -m 0755 $(PROG) $(prefix)/bin
+	$(install) -m 0755 $(program) $(prefix)/bin
 	$(install) -m 0644 tdu.1   $(prefix)/share/man/man1
 
 .PHONY: tar
@@ -49,7 +49,8 @@ tar:
 	tar cvvzf tdu-`date +%Y-%m-%d`.tar.gz \
 		--transform='s:^\.:tdu:' \
 		--show-transformed-names \
-		. \
+		* \
+		--exclude=MyMakefile \
 		--exclude=.svn \
 		--exclude=test \
 		--exclude=CVS \
@@ -58,17 +59,18 @@ tar:
                 --exclude='.cvsignore' \
                 --exclude='*~' \
                 --exclude='.*~' \
-		--exclude='tdu/tdu' \
+		--exclude='tdu' \
 		--exclude='*.o' \
 		--exclude='*.d' \
 		--exclude='.deps' \
-		--exclude='tdu.1.*' \
+		--exclude='*.1.*' \
 		--exclude=tdu \
 		--exclude=TAGS \
 		--exclude='*.tar.gz' \
+		--exclude='*.tmp'
 
 %.1.txt: %.1 Makefile
-	nroff -man $< | col -b > $@.
+	nroff -man $< | col -bx > $@.
 	mv $@. $@
 %.1.ps: %.1 Makefile
 	groff -Tps -man $< >$@.
@@ -79,11 +81,13 @@ tar:
 
 .PHONY: clean
 clean:
-	/bin/rm -fr tdu.1.html tdu.1.ps *.o *.d *~ core $(PROG)
+	/bin/rm -fr $(program).1.* *.o *.d *~ core $(program) || true
 
 %.d: %.c
 	@ >&2 echo Fixing dependencies for $< . . .
 	@ $(CC) -MM $(CPPFLAGS) $< | sed 's/^$*\.o/& $@/g' > $@ || true
 
 -include $(SRCS:.c=.d)
+
+-include MyMakefile
 
