@@ -87,12 +87,14 @@ get_options (int argc, char **argv)
 		case 'G':
 			fprintf(stderr,
 				"-G option is no longer implemented in tdu.\n"
-				"Please use dugroup, a separate program.\n");
+				"Its capability is part of dugroup, "
+				"a separate program.\n");
 			exit(1);
 		case 'I':
 			fprintf(stderr,
 				"-I option is no longer implemented in tdu.\n"
-				"Please use dugroup, a separate program.\n");
+				"Its capability is part of dugroup, "
+				"a separate program.\n");
 			exit(1);
 		case 'A':
 			ascii_tree_chars = 1;
