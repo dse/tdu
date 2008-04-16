@@ -79,6 +79,9 @@ tar:
 %.1.html: %.1 Makefile
 	groff -Thtml -man $< >$@.
 	mv $@. $@
+%.pdf: %.ps Makefile
+	ps2pdf $< $@.
+	mv $@. $@
 
 .PHONY: clean
 clean:

@@ -5,6 +5,6 @@ else
 endif
 
 .PHONY: publish
-publish: $(program).1.html $(program).1.ps $(program).1.txt tar
-	rsync -av $(program)-*.tar.gz $(program).1.html $(program).1.txt $(program).1.ps $(DEST)
+publish: $(program).1.html $(program).1.ps $(program).1.pdf $(program).1.txt tar
+	rsync -av $(program)-*.tar.gz $(program).1.html $(program).1.txt $(program).1.ps $(program).1.pdf $(DEST)
 
