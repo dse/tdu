@@ -8,3 +8,7 @@ endif
 publish: $(program).1.html $(program).1.ps $(program).1.pdf $(program).1.txt tar
 	rsync -av $(program)-*.tar.gz $(program).1.html $(program).1.txt $(program).1.ps $(program).1.pdf $(DEST)
 
+.PHONY: test-manpage
+test-manpage: tdu.1
+	groff -Tascii -man tdu.1 | less
+
