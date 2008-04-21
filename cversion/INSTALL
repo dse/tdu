@@ -7,7 +7,7 @@ Requirements to compile and install tdu:
 
 To install the above on a Debian GNU/Linux system:
 
-	apt-get install gcc make libncurses5-dev libglib-2.0-dev
+	apt-get install gcc make libncurses5-dev libglib2.0-dev
 
 What you need to do:
 
