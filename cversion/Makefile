@@ -47,7 +47,7 @@ install: $(program)
 .PHONY: tar
 tar:
 	tar cvvzf tdu-`date +%Y-%m-%d`.tar.gz \
-		--transform='s:^\.:tdu:' \
+		--transform='s:^:tdu/:' \
 		--show-transformed-names \
 		* \
 		--exclude=MyMakefile \
