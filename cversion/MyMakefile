@@ -1,7 +1,7 @@
 ifeq ($(shell hostname -s), crow)
-	DEST = /www/webonastick.com/htdocs/$(program)/dev
+	DEST = /www/webonastick.com/htdocs/$(program)
 else
-	DEST = dse@crow.webonastick.com:/www/webonastick.com/htdocs/$(program)/dev
+	DEST = dse@crow.webonastick.com:/www/webonastick.com/htdocs/$(program)
 endif
 
 .PHONY: publish
