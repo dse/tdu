@@ -4,10 +4,11 @@ Requirements to compile and install tdu:
 	- GNU Make (other makes are not guaranteed to work)
 	- ncurses (including header files)
 	- glib 2.0 (including header files)
+	- pkg-config
 
 To install the above on a Debian GNU/Linux system:
 
-	apt-get install gcc make libncurses5-dev libglib2.0-dev
+	apt-get install gcc make libncurses5-dev libglib2.0-dev pkg-config
 
 What you need to do:
 
