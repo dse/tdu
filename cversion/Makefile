@@ -36,13 +36,14 @@ splint:
 
 install = /usr/bin/install
 prefix = /usr/local
+DESTDIR =
 
 .PHONY: install
 install: $(program)
-	$(install) -d -m 0755 $(prefix)/bin
-	$(install) -d -m 0755 $(prefix)/share/man/man1
-	$(install) -m 0755 $(program) $(prefix)/bin
-	$(install) -m 0644 tdu.1   $(prefix)/share/man/man1
+	$(install) -d -m 0755 $(DESTDIR)$(prefix)/bin
+	$(install) -d -m 0755 $(DESTDIR)$(prefix)/share/man/man1
+	$(install) -m 0755 $(program) $(DESTDIR)$(prefix)/bin
+	$(install) -m 0644 tdu.1 $(DESTDIR)$(prefix)/share/man/man1
 
 .PHONY: tar
 tar:
