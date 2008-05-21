@@ -1,0 +1,20 @@
+tdu 2008xxxx
+	- remove hyphens from version numbers
+	- patch to Makefile to use DESTDIR, from Michael Jennings
+          <mej@kainx.org>
+
+tdu 2008-05-07
+	- add online help
+	- handle terminal window resizing
+	- handle large sets of data without choking
+	- move functionality to combine files by extension to dugroup
+	- NOTE: now requires glib 2.0
+
+tdu 2004-08-02
+	- add -V option
+	- make more GPL compliant
+	- add methods to generate man pages from source
+
+tdu 2004-07-30
+	- first publicized release
+
