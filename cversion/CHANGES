@@ -1,4 +1,5 @@
 tdu 2008xxxx
+	- adds this CHANGES file
 	- remove hyphens from version numbers
 	- patch to Makefile to use DESTDIR, from Michael Jennings
           <mej@kainx.org>
