@@ -23,7 +23,7 @@
 #define TDU_H
 /*****************************************************************************/
 
-#define TDU_VERSION "2008-03-28"
+#define TDU_VERSION "20080527"
 
 #define TDU_COPYRIGHT_INFO \
 "This is tdu version " TDU_VERSION ".\n" \

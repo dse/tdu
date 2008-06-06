@@ -40,14 +40,14 @@ DESTDIR =
 
 .PHONY: install
 install: $(program)
-	$(install) -d -m 0755 $(DESTDIR)$(prefix)/bin
-	$(install) -d -m 0755 $(DESTDIR)$(prefix)/share/man/man1
+	$(install) -d -m 0755         $(DESTDIR)$(prefix)/bin
+	$(install) -d -m 0755         $(DESTDIR)$(prefix)/share/man/man1
 	$(install) -m 0755 $(program) $(DESTDIR)$(prefix)/bin
-	$(install) -m 0644 tdu.1 $(DESTDIR)$(prefix)/share/man/man1
+	$(install) -m 0644 tdu.1      $(DESTDIR)$(prefix)/share/man/man1
 
 .PHONY: tar
 tar:
-	tar cvvzf tdu-`date +%Y-%m-%d`.tar.gz \
+	tar cvvzf tdu-`cat tdu.h|perl -lne 'print $$1 if /^#define\s+TDU_VERSION\s+\"(.*?)\"/;'`.tar.gz \
 		--transform='s:^:tdu/:' \
 		--show-transformed-names \
 		* \
