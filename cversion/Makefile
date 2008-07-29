@@ -55,6 +55,7 @@ tar:
 		--exclude=.svn \
 		--exclude=test \
 		--exclude=CVS \
+		--exclude='*.rej' \
                 --exclude='#*#' \
                 --exclude='.#*' \
                 --exclude='.cvsignore' \

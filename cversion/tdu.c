@@ -72,7 +72,7 @@ get_options (int argc, char **argv)
 	options_s *options;
 	int c;
 
-	options = (options_s *)malloc(sizeof(options_s));
+	options = malloc(sizeof(options_s));
 	if (options == NULL) {
 		perror("get_options: malloc");
 		exit(1);

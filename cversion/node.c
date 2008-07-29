@@ -34,7 +34,7 @@
 node_s *
 new_node (const char *name)	/* if not NULL, initialize node's name */
 {
-	node_s *node = (node_s *)malloc(sizeof(node_s));
+	node_s *node = malloc(sizeof(node_s));
 	if (node == NULL) {
 		perror("new_node: malloc");
 		exit(1);
@@ -78,10 +78,9 @@ add_child (node_s *parent, node_s *child)
 	
 	/* if necessary, (re)allocate a bigger block of children */
 	if (parent->nchildren >= parent->nchildrenblocks * KIDSATATIME) {
-		parent->children = (node_s **)realloc(parent->children,
-						      ++parent->nchildrenblocks
-						      * KIDSATATIME
-						      * sizeof(node_s *));
+		parent->children = realloc(parent->children,
+					   ++parent->nchildrenblocks
+					   * KIDSATATIME * sizeof(node_s *));
 		if (!parent->children) {
 			perror("add_child: realloc");
 			exit(1);
