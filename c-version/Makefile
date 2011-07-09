@@ -22,17 +22,16 @@ SRCS = tdu.c node.c tduint.c nowrap.c
 HDRS = tduproto.h
 program = tdu
 OBJS = $(SRCS:.c=.o)
-LIBS = -lncurses
 
 $(program): $(OBJS)
-	$(CC) `pkg-config --libs glib-2.0` $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) `pkg-config --libs glib-2.0 ncurses` 
 
 .c.o:
-	$(CC) `pkg-config --cflags glib-2.0` -Wall $(CFLAGS) -c $< -o $@
+	$(CC) `pkg-config --cflags glib-2.0 ncurses` -Wall $(CFLAGS) -c $< -o $@
 
 .PHONY: splint
 splint:
-	splint -weak -posix-lib `pkg-config --cflags glib-2.0` *.c *.h
+	splint -weak -posix-lib `pkg-config --cflags glib-2.0 ncurses` *.c *.h
 
 install = /usr/bin/install
 prefix = /usr/local
