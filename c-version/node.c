@@ -124,7 +124,7 @@ find_or_create_child (node_s *node, const char *name)
 
 /* Link a pathname into the tree and set the destination node's size. */
 void
-add_node (node_s *root, const char *pathname, long size)
+add_node (node_s *root, const char *pathname, TDU_SIZE_T size)
 {
 	char *pathname_copy;
 	char *name;
@@ -154,10 +154,10 @@ add_node (node_s *root, const char *pathname, long size)
 
 /* Recursively fix any nodes in a tree whose size is not yet specified.
    Returns size of specified node. */
-long
+TDU_SIZE_T
 fix_tree_sizes (node_s *node)
 {
-	long size = 0;
+	TDU_SIZE_T size = 0;
 
 	if (!node) return 0;
 	if (node->size >= 0) return node->size; /* no need to recompute */
@@ -458,7 +458,7 @@ parse_file (const char *pathname)
 	FILE *in;
 	char line[PATH_MAX+256]; /* store lines as they are read from a file */
 	char path[PATH_MAX];	 /* store pathnames as they are copied */
-	long size;
+	TDU_SIZE_T size;
 	long entries = 0;
 	int show_progress = isatty(fileno(stderr));
 
@@ -478,7 +478,7 @@ parse_file (const char *pathname)
 	node->name = "[root]";	/* no strdup necessary or wanted */
 
 	while (fgets(line, sizeof(line), in)) {
-		sscanf(line, "%ld %[^\n]\n", &size, path);
+		sscanf(line, TDU_SIZE_T_SCANF " %[^\n]\n", &size, path);
 		add_node(node, path, size);
 		++entries;
 		if (show_progress && !(entries % 100))
