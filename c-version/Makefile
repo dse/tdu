@@ -96,3 +96,5 @@ clean:
 
 -include MyMakefile
 
+install-debian-prerequisites:
+	sudo apt-get install pkg-config libglib2.0-dev libncurses5-dev
