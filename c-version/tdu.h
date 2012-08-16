@@ -23,11 +23,17 @@
 #define TDU_H
 /*****************************************************************************/
 
-#define TDU_VERSION "20080527"
+#define TDU_VERSION_MAJOR      0
+#define TDU_VERSION_MINOR      0
+#define TDU_VERSION_PATCHLEVEL 20080527
+
+#define TDU_VERSION            "0.0.20080527"
+#define TDU_COPYRIGHT_DATE     "2004-2012"
+#define TDU_COPYRIGHT_HOLDER   "Darren Embry"
 
 #define TDU_COPYRIGHT_INFO \
 "This is tdu version " TDU_VERSION ".\n" \
-"Copyright (C) 2004-2008 Darren Stuart Embry.\n" \
+"Copyright (C) " TDU_COPYRIGHT_DATE " " TDU_COPYRIGHT_HOLDER ".\n" \
 "\n" \
 "This program comes with ABSOLUTELY NO WARRANTY.  This is free software,\n" \
 "and you are welcome to redistribute it under the terms of the GNU General\n" \
