@@ -24,3 +24,9 @@ The web site: http://webonastick.com/tdu/
 
 The github: https://github.com/dse/tdu/
 
+# See Also
+
+tdu, a du(1) output filter program that groups files together:
+- http://webonastick.com/dugroup/
+- https://github.com/dse/dugroup/
+
