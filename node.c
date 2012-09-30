@@ -482,10 +482,10 @@ parse_file (const char *pathname)
 		add_node(node, path, size);
 		++entries;
 		if (show_progress && !(entries % 100))
-			fprintf(stderr, "%ld entries\r", entries);
+			fprintf(stderr, "  %ld entries\r", entries);
 	}
 	if (show_progress) {
-		fprintf(stderr, "%ld entries\n", entries);
+		fprintf(stderr, "  %ld entries total\n", entries);
 	}
 
 	if (in != stdin) {
