@@ -35,6 +35,18 @@ ifdef manpage
 .SUFFIXES: .1 .1.txt .1.ps .1.html .ps .pdf
 endif
 
+EXTRA_CFLAGS =
+EXTRA_LIBS =
+
+# on legacy systems (old version of Debian) where libncurses5-dev
+# isn't nicely all pkg-config'ed up.
+ifeq (0,$(shell pkg-config --cflags ncurses >/dev/null 2>/dev/null))
+else
+  PKGCONFIG_PKGS = glib-2.0
+  EXTRA_CFLAGS = 
+  EXTRA_LIBS   = -lncurses
+endif
+
 PKGCONFIG_CFLAGS = `pkg-config --cflags $(PKGCONFIG_PKGS)`
 PKGCONFIG_LIBS   = `pkg-config --libs   $(PKGCONFIG_PKGS)`
 
@@ -57,10 +69,10 @@ INSTALL_MKDIR   = $(INSTALL) -d
 all: $(program)
 
 $(program): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(PKGCONFIG_LIBS) $(CFLAGS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(PKGCONFIG_LIBS) $(EXTRA_LIBS) $(CFLAGS)
 
 %.o: %.c
-	$(CC) -c $(CPPFLAGS) $(PKGCONFIG_CFLAGS) $(CFLAGS) $<
+	$(CC) -c $(CPPFLAGS) $(PKGCONFIG_CFLAGS) $(EXTRA_CFLAGS) $(CFLAGS) $<
 
 %.d: %.c
 	@ >&2 echo Fixing dependencies for $< . . .
