@@ -30,7 +30,7 @@ DEBPKGS = pkg-config libglib2.0-dev libncurses5-dev gcc
 SHELL = /bin/sh
 
 .SUFFIXES:
-.SUFFIXES: .c .o .d
+.SUFFIXES: .c .o
 ifdef manpage
 .SUFFIXES: .1 .1.txt .1.ps .1.html .ps .pdf
 endif
@@ -73,13 +73,6 @@ $(program): $(OBJS)
 
 %.o: %.c
 	$(CC) -c $(CPPFLAGS) $(PKGCONFIG_CFLAGS) $(EXTRA_CFLAGS) $(CFLAGS) $<
-
-%.d: %.c
-	@ >&2 echo Fixing dependencies for $< . . .
-	$(CC) -MM $(CPPFLAGS) $(PKGCONFIG_CFLAGS) $(CFLAGS) $< | \
-		sed 's/^$*\.o/& $@/g' > $@ || true
-
--include $(SRCS:.c=.d)
 
 .PHONY: install
 install: $(program)
@@ -140,9 +133,11 @@ version:
 ###############################################################################
 # Dependencies
 
+.SUFFIXES: .d
 %.d: %.c
 	@ >&2 echo Fixing dependencies for $< . . .
-	@ $(CC) -MM $(CPPFLAGS) $< | sed 's/^$*\.o/& $@/g' > $@ || true
+	$(CC) -MM $(CPPFLAGS) $(PKGCONFIG_CFLAGS) $(EXTRA_CFLAGS) $(CFLAGS) $< | \
+		sed 's/^$*\.o/& $@/g' > $@ || true
 
 -include $(SRCS:.c=.d)
 
