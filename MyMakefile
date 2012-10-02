@@ -1,4 +1,4 @@
-ifeq ($(shell hostname -s), crow)
+ifeq ($(shell hostname -s 2>/dev/null), crow)
 	DEST = /www/webonastick.com/htdocs/$(program)
 else
 	DEST = dse@crow.webonastick.com:/www/webonastick.com/htdocs/$(program)
