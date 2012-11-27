@@ -2,7 +2,7 @@
  * node.c
  * This file is part of tdu, a text-mode disk usage visualization utility.
  *
- * Copyright (C) 2004-2008 Darren Stuart Embry.
+ * Copyright (C) 2004-2012 Darren Stuart Embry.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

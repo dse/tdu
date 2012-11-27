@@ -2,7 +2,7 @@
  * tdu.h
  * This file is part of tdu, a text-mode disk usage visualization utility.
  *
- * Copyright (C) 2004-2008 Darren Stuart Embry.
+ * Copyright (C) 2004-2012 Darren Stuart Embry.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,9 @@
 
 #define TDU_VERSION_MAJOR      0
 #define TDU_VERSION_MINOR      0
-#define TDU_VERSION_PATCHLEVEL 20080527
+#define TDU_VERSION_PATCHLEVEL 20121127
 
-#define TDU_VERSION            "0.0.20080527"
+#define TDU_VERSION            "0.0.20121127"
 #define TDU_COPYRIGHT_DATE     "2004-2012"
 #define TDU_COPYRIGHT_HOLDER   "Darren Embry"
 
