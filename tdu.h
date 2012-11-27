@@ -42,7 +42,7 @@
 "http://dse.webonastick.com/tdu/COPYING.txt\n"
 
 #define TDU_SIZE_T       unsigned long long
-#define TDU_SIZE_T_SCANF "%Lu"
+#define TDU_SIZE_T_SCANF "%llu"
 
 int debug (const char *fmt, ...);
 
