@@ -934,7 +934,7 @@ SORTING CHILDREN:
   n,N   sort,reverse sort by name
   u,U   unsort to original order
   d,D   sort,reverse sort by number of descendents
-  =s, =S, =u, =U, -n, =N   sort recursively
+  =s, =S, =u, =U, =n, =N   sort recursively
 MISCELLANY:
   #         show/hide number of descendents
   A         toggle ASCII line-drawing characters
