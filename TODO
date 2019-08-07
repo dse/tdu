@@ -1,5 +1,33 @@
 TODO
 
+- Implement "human-readable" output.  Proposed keybindings:
+
+	@h to use Kilobyte, etc. (powers of 1,000)
+	@H to use Kibibyte, etc. (powers of 1,024)
+
+  Cannot use h/H key since it already exists as one of the "vi" type
+  keybindings.
+
+- block count options.
+
+  du options:
+	-h	use unit suffixes:
+		Byte, Kilobyte, Megabyte, Gigabyte, Terabyte, Petabyte
+	-g	display block counts as 1073741824-byte blocks
+	-k	display block counts as 1024-byte blocks
+	-m	display block counts as 1048576-byte blocks
+
+  df options:
+	-b	512-byte blocks (default)
+	-g	1073741824-byte blocks
+	-H	human readable output, powers of 1000
+	-h	human readable output, powers of 1024
+	-k	1024-byte blocks
+	-m	1048576-byte blocks
+	-P	512-byte blocks (default)
+
+  du and df also observe the BLOCKSIZE environment variable
+
 - implement horizontal scrolling
 
 - support the -0/--null option. [for GNU du's -0 option]
