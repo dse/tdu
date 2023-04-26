@@ -37,8 +37,8 @@ wprintw_nowrap (WINDOW *win, const char *fmt, ...)
 	char *p;		/* through buffer */
 
 	va_start(ap, fmt);	/* looks like i need to do this to pass */
-	va_end(ap);		/* arg list to vsnprintf(). */
 	vsnprintf(buffer, BUFFER_SIZE, fmt, ap);
+	va_end(ap);		/* arg list to vsnprintf(). */
 
 	getmaxyx(win, maxy, maxx);
 	for (p = buffer; *p; ++p) {
