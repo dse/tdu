@@ -1,0 +1,54 @@
+/**
+ * Internal implementation of `du`.
+ *
+ * This is preparatory work for refreshing.
+ */
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static size_t block_size = 1024;
+
+size_t traverse(const char *pathname, int depth) {
+	static int dev;
+	struct stat statbuf;
+	if (!lstat(pathname, &statbuf)) {
+		return 0;
+	}
+	if (depth == 0)
+		dev = statbuf.st_dev;
+	else if (statbuf.st_dev != dev) /* crossed fs boundary */
+		return 0;
+	/* if (!inode_mark(statbuf.st_dev, statbuf.st_ino)) */
+	/*	/\* false if already marked, true if newly marked *\/ */
+	/*	return 0; */
+	size_t siz = statbuf.st_blocks;	/* st_blksize; st_size; st_blocks = blocks allocated */
+	// size_t siz = (st_size + st_blksize - 1) / st_blksize;
+	if ((statbuf.st_mode & S_IFMT) != S_IFDIR) { /* is a file */
+		return siz;
+	}
+	size_t total = siz;
+	DIR *dir = opendir(pathname);
+	if (NULL == dir) {
+		return 0;
+	}
+	struct dirent *ent;
+	while ((ent = readdir(dir)) != NULL) {
+		char* filename = malloc(strlen(pathname) + strlen(dir->d_name) + 2);
+		if (!filename) {
+			perror("malloc");
+			exit(1);
+		}
+		strcpy(filename, pathname);
+		strcat(filename, "/");
+		strcat(filename, dir->d_name);
+		total += traverse(filename, depth + 1);
+		free(filename);
+	}
+	closedir(dir);
+	return total;
+}

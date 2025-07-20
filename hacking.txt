@@ -1,0 +1,34 @@
+node.c
+  node_s *new_node(const char *name)
+    create a new node
+    initialize its contents
+      size=-1 children=NULL nchildren=0 nchildrenblocks=0
+      expanded=0 parent=NULL descendents=-1
+      is_last_child=1 origindex=-1 children_by_name=NULL
+    return a pointer to it
+  void add_child(node_s *parent, node_s *child)
+    take an existing node and add it as a child to the parent
+  node_s *find_or_create_child(node_s *node, char *name)
+    find an existing child of the specified node
+    with the supplied name or create one
+  void add_node(node_s *root, const char *pathname, TDU_SIZE_T size)
+    link a pathname into the tree
+    set the destination node's size
+    FIXME: is this supplied with directories?
+  TDU_SIZE_T fix_tree_sizes(node_s *node)
+    if node->size is not specified then compute it based on children
+    FIXME: this probably won't include the directory's size
+    FIXME: does this function even need to be executed?
+           does it ever do any recomputations?
+  long fix_tree_descendents(node_s *node)
+    recomputes descendent counts
+  void cleanup_tree(node_s *node)
+  long expand_tree(node_s *node, int level)
+    FIXME: is return value ever used?
+  long collapse_tree(node_s *node, int level)
+    FIXME: is return value ever used?
+  node_s *find_node_numbered(node_s *node, long nodeline)
+    find the <nodeline>th visible node in the supplied tree
+    this is for rendering
+  long find_node_number_in(node_s *node, node_s *root)
+    return <n> where root's visible <n>th node is node.

@@ -1,0 +1,2 @@
+automake
+        Makefile.am -> Makefile.in
