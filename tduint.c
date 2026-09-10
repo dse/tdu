@@ -29,7 +29,7 @@
 #include <signal.h>
 #include <sys/ioctl.h>
 /*
-#include <pty.h>
+  #include <pty.h>
 */
 #include <string.h>
 #include <errno.h>
