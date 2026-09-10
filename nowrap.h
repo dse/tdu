@@ -1,4 +1,4 @@
-/*
+/*!
  * nowrap.h
  * This file is part of tdu, a text-mode disk usage visualization utility.
  *
