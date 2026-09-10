@@ -40,9 +40,9 @@ struct option long_options[] = {
 	{ NULL,         0, NULL, 0 }
 };
 
-#define TDU_USAGE_MESSAGE \
+#define TDU_USAGE_MESSAGE						\
 	"usage: du [OPTION ...] [FILE ...] | %s [OPTION ...] [FILE ...]\n" \
-	"  -h, --help        display this message\n" \
+	"  -h, --help        display this message\n"			\
 	"  -A, --ascii-tree  display tree branches using ASCII characters\n" \
 	"  -V, --version     show version, license terms\n"
 
