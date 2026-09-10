@@ -146,10 +146,10 @@ add_node (node_s *root, const char *pathname, TDU_SIZE_T size)
 	}
 	node->size = size;
 
-        if (node->children_by_name) {
-                g_hash_table_destroy(node->children_by_name);
-                node->children_by_name = NULL;
-        }
+	if (node->children_by_name) {
+		g_hash_table_destroy(node->children_by_name);
+		node->children_by_name = NULL;
+	}
 }
 
 /* Recursively fix any nodes in a tree whose size is not yet specified.
